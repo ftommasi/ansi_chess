@@ -186,6 +186,7 @@ fn get_piece_id_at(b: &Board, new_pos : &Square) -> u8{
 //
 fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
     let mut valid_moves = vec![];
+    //TODO: Captures are not considered neither are "blocks"
     match piece.piece_type{
         PieceType::Pawn  => {
             match piece.color{
@@ -213,8 +214,264 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 },
             }
         },
-        //_ => todo!("implement possible moves for other pieces"),
-        _ => println!("implement possible moves for {:?}", piece.piece_type),
+        PieceType::Knight  => {
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
+
+            //TODO: Some of these are out of bounds
+            valid_moves.push(Square{file: cur_file + 1, rank: cur_rank + 2});
+
+            if cur_rank >= 2 {
+                valid_moves.push(Square{file: cur_file + 1, rank: cur_rank - 2});
+            }
+
+
+            if cur_file >= 1 {
+                valid_moves.push(Square{file: cur_file - 1, rank: cur_rank + 2});
+            }
+
+            if cur_file >= 1 && cur_rank >= 2 {
+                valid_moves.push(Square{file: cur_file - 1, rank: cur_rank - 2});
+            }
+
+            if cur_file >= 2{
+                valid_moves.push(Square{file: cur_file - 2, rank: cur_rank + 1});
+            }
+
+            if cur_file >= 2 && cur_rank >= 1 {
+                valid_moves.push(Square{file: cur_file - 2, rank: cur_rank - 1});
+            }
+
+            valid_moves.push(Square{file: cur_file + 2, rank: cur_rank + 1});
+            if cur_rank >= 1{
+                valid_moves.push(Square{file: cur_file + 2, rank: cur_rank - 1});
+            }
+        },
+
+        PieceType::Bishop  => {
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
+
+            //TODO: Some of these might be out of bounds. Verify
+            //for each diagonal
+                let mut rank = cur_rank;
+                let mut file = cur_file;
+            loop { 
+                if rank > SquareRank::EIGHTH as u8 || file > SquareFile::H as u8 {
+                    break;
+
+                }
+                rank = rank + 1;
+                file = file + 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+                if rank > SquareRank::EIGHTH as u8 || file == SquareFile::A as u8 {
+                    break;
+
+                }
+                rank = rank + 1;
+                file = file - 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+                if rank == SquareRank::FIRST as u8 || file > SquareFile::H as u8 {
+                    break;
+
+                }
+                rank = rank - 1;
+                file = file + 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+           
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+                if rank == SquareRank::FIRST as u8 || file == SquareFile::A as u8 {
+                    break;
+
+                }
+                rank = rank - 1;
+                file = file - 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+
+            
+        },
+        PieceType::Rook  => {
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
+            let mut rank = cur_rank;
+            let mut file = cur_file;
+            loop { 
+                if file == SquareFile::A as u8 {
+                    break;
+                }
+                file = file - 1;
+                valid_moves.push(Square{file,rank});
+            }
+            rank = cur_rank;
+            file = cur_file;
+            loop { 
+
+                if rank == SquareRank::FIRST as u8 {
+                    break;
+                }
+                rank = rank - 1;
+                valid_moves.push(Square{file,rank});
+            }
+            rank = cur_rank;
+            file = cur_file;
+            loop { 
+                if file > SquareFile::H as u8 {
+                    break;
+                }
+                file = file + 1;
+                valid_moves.push(Square{file,rank});
+            }
+            rank = cur_rank;
+            file = cur_file;
+            loop { 
+
+                if rank > SquareRank::EIGHTH as u8 {
+                    break;
+                }
+                rank = rank + 1;
+                valid_moves.push(Square{file,rank});
+            }
+            
+        },
+        PieceType::Queen  => {
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
+            //TODO: Some of these might be out of bounds. Verify
+            //for each diagonal
+                let mut rank = cur_rank;
+                let mut file = cur_file;
+            loop { 
+                if rank > SquareRank::EIGHTH as u8 || file > SquareFile::H as u8 {
+                    break;
+
+                }
+                rank = rank + 1;
+                file = file + 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+
+            loop { 
+                if rank > SquareRank::EIGHTH as u8 || file == SquareFile::A as u8 {
+                    break;
+
+                }
+                rank = rank + 1;
+                file = file - 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+
+            loop { 
+                if rank == SquareRank::FIRST as u8 || file > SquareFile::H as u8 {
+                    break;
+
+                }
+                rank = rank - 1;
+                file = file + 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+           
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+                if rank == SquareRank::FIRST as u8 || file == SquareFile::A as u8 {
+                    break;
+
+                }
+                rank = rank - 1;
+                file = file - 1;
+
+                valid_moves.push(Square{file ,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+
+                if file == SquareFile::A as u8 {
+                    break;
+                }
+                file = file - 1;
+                valid_moves.push(Square{file,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+
+                if rank == SquareRank::FIRST as u8 {
+                    break;
+                }
+                rank = rank - 1;
+                valid_moves.push(Square{file,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+
+                if file > SquareFile::H as u8 {
+                    break;
+                }
+                file = file + 1;
+                valid_moves.push(Square{file,rank});
+            }
+                rank = cur_rank;
+                file = cur_file;
+            loop { 
+
+                if rank > SquareRank::EIGHTH as u8 {
+                    break;
+                }
+                rank = rank + 1;
+                valid_moves.push(Square{file,rank});
+            }
+
+        },
+        PieceType::King  => {
+            let file = piece.position.file;
+            let rank = piece.position.rank;
+
+            //TODO: Some of these moves are invalid
+            valid_moves.push(Square{file: file + 1 , rank: rank + 1});
+            valid_moves.push(Square{file: file + 1 ,rank});
+            valid_moves.push(Square{file ,rank : rank + 1});
+
+            if rank >= 1{
+                valid_moves.push(Square{file: file + 1 , rank: rank - 1});
+                valid_moves.push(Square{file ,rank : rank - 1});
+            }
+            if file >= 1{
+                valid_moves.push(Square{file: file - 1 , rank: rank + 1});
+                valid_moves.push(Square{file: file - 1 ,rank});
+            }
+
+            if rank >1 && file >= 1{
+                valid_moves.push(Square{file: file - 1 , rank: rank - 1});
+            }
+        },
+        _ => todo!("implement possible moves for {:?}", piece.piece_type),
 
     }
 
