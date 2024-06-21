@@ -1,6 +1,6 @@
+use std::{ascii::AsciiExt, io};
 
-
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 enum PieceType{
     None,
     Pawn,
@@ -27,8 +27,8 @@ fn paint_piece(piece : &Piece){
                 }
                 PieceType::Bishop  => {
                     match piece.color{
-                        PieceColor::Black => print!("{}", ansi_term::Color::Green.paint("H")),
-                        PieceColor::White => print!("{}", ansi_term::Color::White.paint("H")),
+                        PieceColor::Black => print!("{}", ansi_term::Color::Green.paint("I")),
+                        PieceColor::White => print!("{}", ansi_term::Color::White.paint("I")),
                     }
                 }
                 PieceType::Rook  => {
@@ -40,7 +40,7 @@ fn paint_piece(piece : &Piece){
                 PieceType::Queen  => {
                     match piece.color{
                         PieceColor::Black => print!("{}", ansi_term::Color::Green.paint("Q")),
-                        PieceColor::White => print!("{}", ansi_term::Color::White.paint("S")),
+                        PieceColor::White => print!("{}", ansi_term::Color::White.paint("Q")),
                     }
                 }
                 PieceType::King  => {
@@ -53,13 +53,13 @@ fn paint_piece(piece : &Piece){
             }
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 enum PieceColor{
     Black,
     White,
 }
 
-enum SquareRank{
+enum SquareFile{
     A = 0,
     B,
     C,
@@ -70,36 +70,89 @@ enum SquareRank{
     H,
 }
 
-impl SquareRank{
-    fn from(val : u8) -> SquareRank{
+impl SquareFile{
+    fn from(val : u8) -> Self{
         match val{
-            0 => SquareRank::A,
-            1 => SquareRank::B,
-            2 => SquareRank::C,
-            3 => SquareRank::D,
-            4 => SquareRank::E,
-            5 => SquareRank::F,
-            6 => SquareRank::G,
-            7 => SquareRank::H,
+            0 => Self::A,
+            1 => Self::B,
+            2 => Self::C,
+            3 => Self::D,
+            4 => Self::E,
+            5 => Self::F,
+            6 => Self::G,
+            7 => Self::H,
+            _ => unreachable!("{} exceeds File value!",val),
+        }
+    }
+    fn from_char(val : char) -> Self{
+        match val{
+            'A' | 'a' => Self::A,
+            'B' | 'b'=> Self::B,
+            'C' | 'c'=> Self::C,
+            'D' | 'd'=> Self::D,
+            'E' | 'e'=> Self::E,
+            'F' | 'f'=> Self::F,
+            'G' | 'g'=> Self::G,
+            'H' | 'h'=> Self::H,
+            _ => unreachable!("{} exceeds File value!",val),
+        }
+    }
+}
+
+enum SquareRank{
+    FIRST = 0,
+    SECOND,
+    THIRD,
+    FOURTH,
+    FIFTH,
+    SIXTH,
+    SEVENTH,
+    EIGHTH,
+}
+
+impl SquareRank{
+    fn from(val : u8) -> Self{
+        match val{
+            0 => Self::FIRST,
+            1 => Self::SECOND,
+            2 => Self::THIRD,
+            3 => Self::FOURTH,
+            4 => Self::FIFTH,
+            5 => Self::SIXTH,
+            6 => Self::SEVENTH,
+            7 => Self::EIGHTH,
+            _ => unreachable!("{} exceeds Rank value!",val),
+        }
+    }
+    fn from_char(val : char) -> Self{
+        match val{
+            '0' => Self::FIRST,
+            '1' => Self::SECOND,
+            '2' => Self::THIRD,
+            '3' => Self::FOURTH,
+            '4' => Self::FIFTH,
+            '5' => Self::SIXTH,
+            '6' => Self::SEVENTH,
+            '7' => Self::EIGHTH,
             _ => unreachable!("{} exceeds Rank value!",val),
         }
     }
 }
 
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 struct Square{
-    row : u8,
-    col : u8,
+    rank : u8,
+    file : u8,
 }
 
 impl Square {
-    fn new(rank : SquareRank, file : u8) -> Square{
-        Square{row : rank as u8, col : file}
+    fn new(rank : SquareRank, file : SquareFile) -> Self{
+        Self{rank : rank as u8, file: file as u8}
     }
 
-    fn eq(&self,other : &Square) -> bool{
-        return self.col == other.col && self.row == other.col;
+    fn eq(&self,other : &Self) -> bool{
+        return self.file == other.file && self.rank == other.rank;
     }
 
     fn all() -> Vec<Vec<Square>> {
@@ -107,7 +160,7 @@ impl Square {
         for rank in 0..8{
             let mut squares = vec![];
             for file in 0..8{
-                squares.push(Square::new(SquareRank::from(rank),file));
+                squares.push(Self::new(SquareRank::from(rank),SquareFile::from(file)));
             }
             ranks.push(squares);
         }
@@ -115,23 +168,64 @@ impl Square {
     }
 }
 
+#[derive(Clone,Debug)]
 struct Board {
     pieces : Vec<Piece>,
     squares : Vec<Vec<Square>>,
 }
 
-impl Board{
-  
-    fn new() -> Board{
-        Board{
-            pieces : Piece::all(),//vec![Piece::new();16],
-            squares : Square::all(),
-        }
+fn get_piece_id_at(b: &Board, new_pos : &Square) -> u8{
+    if let Some(piece)  = get_piece_at(b,new_pos.rank, new_pos.file){
+        piece.id
+    }else{
+        255 // ERROR value ?
+    }
+}
+
+//Helper because borrank checker is really mad
+//
+fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
+    let mut valid_moves = vec![];
+    match piece.piece_type{
+        PieceType::Pawn  => {
+            match piece.color{
+                PieceColor::Black => {
+                    if piece.position.rank == 6{ //Pawn has not moved
+                        if !square_contains_piece_square(board,piece.position.rank-2,piece.position.file){
+                            valid_moves.push(Square{rank:piece.position.rank-2,file:piece.position.file});
+                        }
+                    }
+
+                    if !square_contains_piece_square(board,piece.position.rank-1,piece.position.file){
+                        valid_moves.push(Square{rank:piece.position.rank-1,file:piece.position.file});
+                    }
+                },
+                PieceColor::White => {
+                    if piece.position.rank == 1{ //Pawn has not moved
+                        if !square_contains_piece_square(board,piece.position.rank+2,piece.position.file){
+                            valid_moves.push(Square{rank:piece.position.rank+2,file:piece.position.file});
+                        }
+                    }
+
+                    if !square_contains_piece_square(board,piece.position.rank+1,piece.position.file){
+                        valid_moves.push(Square{rank:piece.position.rank+1,file:piece.position.file});
+                    }
+                },
+            }
+        },
+        //_ => todo!("implement possible moves for other pieces"),
+        _ => println!("implement possible moves for {:?}", piece.piece_type),
+
     }
 
-    fn square_contains_piece_square(&self, rarnk : u8, file : u8) -> bool{
-        for piece in self.pieces.as_slice(){
-            if piece.position.row == rarnk && piece.position.col == file{
+    valid_moves
+}
+    fn square_contains_piece_square(b : &Board, rarnk : u8, file : u8) -> bool{
+        for piece in b.pieces.as_slice(){
+            match piece.piece_type {
+                _ => {/* do noething*/}
+            }
+            if piece.position.rank == rarnk && piece.position.file == file{
                 return true;
             }
         }
@@ -139,38 +233,104 @@ impl Board{
     }
 
 
-    fn get_piece_at(&self, rarnk : u8, file : u8) -> Option<Piece>{
-        for piece in self.pieces.as_slice(){
-            if piece.position.row == rarnk && piece.position.col == file{
+    fn get_piece_at(b : &Board, rarnk : u8, file : u8) -> Option<Piece>{
+        for piece in b.pieces.as_slice(){
+            if piece.position.rank == rarnk && piece.position.file == file{
                 return Some(piece.clone());
             }
         }
         None
     }
 
-    //Should this return a bool for success or something?
-    fn move_piece(&mut self, piece_id : u8, new_pos : &Square){
+    //Should this rturn bool or Result or something?
+fn move_piece(b: &mut Board, piece_id : u8, new_pos : &Square){
     let mut selected_piece : Option<&mut Piece> = None;
-    for piece in &mut self.pieces{
+    for piece in &mut b.pieces{
         if piece.id == piece_id{
             selected_piece = Some(piece);
+            break; //TODO: Investigate why we fall in this loop more than one...
         }
     }
-    
+   
+    let mut next_move : Option<&Square> = None;
     match selected_piece {
-        Some(piece) => {
+        Some(ref mut piece) => {
+            let mut found_move = false;
             for valid_move in piece.possible_moves.as_slice(){
                 if valid_move.eq(new_pos) {
-                    //piece.update_pos(new_pos); //<- why is this a problem??
-                    piece.position.row = new_pos.row;
-                    piece.position.col = new_pos.col;
+                    //piece.update_pos(new_pos); //<- We cant borrank from piece again as it is
+                                                //borranked in the loop. defer position update
+                    next_move = Some(new_pos);
+                    piece.position.rank = new_pos.rank;
+                    piece.position.file = new_pos.file;
+
+                    found_move = true;
 
                 }
             }
+
+            if !found_move{
+                println!("selected move not in list of valid moves for selected piece");
+            }
+
             // reclaculate moves here. Calling another self, mut function is not working and this
             // is probably the only place where it is needed
-            piece.possible_moves = vec![Square{row : (piece.position.row + 1)%8,col : (piece.position.col + 1)%8 }];
-            todo!("recalculate_valid_moves is not implemented yet");
+            //piece.possible_moves = vec![Square{rank : (piece.position.rank + 1)%8,file : (piece.position.file + 1)%8 }];
+           
+        },
+        None => {
+            println!("Could not resolve Piece_id {}",piece_id);
+            //return;
+        }
+    }
+
+    match next_move {
+        Some(_move_) => {
+            let piece =  selected_piece.unwrap();
+
+            match piece.piece_type{
+                PieceType::Pawn  => {
+                    match piece.color{
+                        PieceColor::Black => {
+                        },
+                        PieceColor::White => {
+                        },
+                    }
+                }
+                PieceType::Knight  => {
+                    match piece.color{
+                        PieceColor::Black => {},
+                        PieceColor::White => {},
+                    }
+                }
+                PieceType::Bishop  => {
+                    match piece.color{
+                        PieceColor::Black => {},
+                        PieceColor::White => {},
+                    }
+                }
+                PieceType::Rook  => {
+                    match piece.color{
+                        PieceColor::Black => {},
+                        PieceColor::White => {},
+                    }
+                }
+                PieceType::Queen  => {
+                    match piece.color{
+                        PieceColor::Black => {},
+                        PieceColor::White => {},
+                    }
+                }
+                PieceType::King  => {
+                    match piece.color{
+                        PieceColor::Black => {},
+                        PieceColor::White => {},
+                    }
+                }
+                 _ => print!(""),
+            }
+
+            //todo!("recalculate_valid_moves is not implemented yet");
         },
         None => {
             println!("Illegal move");
@@ -187,9 +347,19 @@ impl Board{
                 //    }
                 //}
     }
+
+impl Board{
+ 
+    fn new() -> Self{
+        Self{
+            pieces : Piece::all(),//vec![Piece::new();16],
+            squares : Square::all(),
+        }
+    }
+
 }
 
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 struct Piece{
     id : u8, // For ease of search and Id
     position : Square,
@@ -203,12 +373,12 @@ struct Piece{
 //static CUR_PIECE_NUM = AtomicU8::new(0);
 
 impl Piece{
-    fn default() -> Piece{
-        return Piece{
+    fn default() -> Self{
+        Self{
             id : 0, //TODO: should we track this better, probably..
             position : Square {
-                row : 0,
-                col : 0,
+                rank : 0,
+                file : 0,
             },
             possible_moves : vec![],
             threatened : false,
@@ -217,10 +387,10 @@ impl Piece{
         }
     }
 
-    fn new(rank : u8, file : u8, _color : PieceColor, _type : PieceType) -> Piece{
+    fn new(rank : u8, file : u8, _color : PieceColor, _type : PieceType) -> Self{
         //CUR_PIECE_NUM.fetch_add;
-        Piece{
-            position : Square::new(SquareRank::from(rank),file),
+        Self{
+            position : Square::new(SquareRank::from(rank),SquareFile::from(file)),
             color : _color,
             possible_moves : vec![],
             threatened : false,
@@ -229,32 +399,62 @@ impl Piece{
         }
     }
 
-    fn all() -> Vec<Piece> {
+    fn all() -> Vec<Self> {
         let mut pieces = vec![];
             for file in 0..8{
-                pieces.push(Piece::new(1,file,PieceColor::White,PieceType::Pawn));
-                pieces.push(Piece::new(6,file,PieceColor::Black,PieceType::Pawn));
+                pieces.push(Self::new(1,file,PieceColor::White,PieceType::Pawn));
+                pieces.push(Self::new(6,file,PieceColor::Black,PieceType::Pawn));
             }
+            pieces.push(Self::new(0,0,PieceColor::White,PieceType::Rook));
+            pieces.push(Self::new(0,7,PieceColor::White,PieceType::Rook));
+            pieces.push(Self::new(7,0,PieceColor::Black,PieceType::Rook));
+            pieces.push(Self::new(7,7,PieceColor::Black,PieceType::Rook));
+
+            pieces.push(Self::new(0,1,PieceColor::White,PieceType::Knight));
+            pieces.push(Self::new(0,6,PieceColor::White,PieceType::Knight));
+            pieces.push(Self::new(7,1,PieceColor::Black,PieceType::Knight));
+            pieces.push(Self::new(7,6,PieceColor::Black,PieceType::Knight));
+
+            pieces.push(Self::new(0,2,PieceColor::White,PieceType::Bishop));
+            pieces.push(Self::new(0,5,PieceColor::White,PieceType::Bishop));
+            pieces.push(Self::new(7,2,PieceColor::Black,PieceType::Bishop));
+            pieces.push(Self::new(7,5,PieceColor::Black,PieceType::Bishop));
+
+            pieces.push(Self::new(0,4,PieceColor::White,PieceType::Queen));
+            pieces.push(Self::new(7,4,PieceColor::Black,PieceType::Queen));
+
+            pieces.push(Self::new(0,3,PieceColor::White,PieceType::King));
+            pieces.push(Self::new(7,3,PieceColor::Black,PieceType::King));
         pieces
     }
-    
+   
     //NOTE: Board is in charge of validating the move, by contract,
     //      we assume that at this point the move is valid
     //      despite Pieces owning their possible valid moves
     fn update_pos(&mut self, new_pos : &Square){
-            self.position.col = new_pos.col;
-            self.position.row = new_pos.row;
+            self.position.file = new_pos.file;
+            self.position.rank = new_pos.rank;
     }
 }
 
 fn main() {
-    let chess_board = Board::new();
+    let mut chess_board = Board::new();
     //init board
-    
-    for (idx_r,row) in (0..8).enumerate(){
-        for (idx_c,col) in (0..8).enumerate(){
+    //TODO: I;m sure there is a better way to do this, doing it the quick and dirty way for now
+    let chess_board_clone = chess_board.clone();
+    for piece in &mut chess_board.pieces{
+        let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
+        piece.possible_moves.append(&mut moves);
+    }
+   
+    'game : loop{
+    //Draw board. Refactor?
+    let mut cur_pos : Vec<(u8,u8)> = vec![];
+    for (idx_r,rank) in (0..8).rev().enumerate(){ //POV: Playing as white pieces
+    //for (idx_r,rank) in (0..8).enumerate(){ //POV: Playing as black pieces
+        for (idx_c,file) in (0..8).enumerate(){
             //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
-            
+           
             let mut square_color = ansi_term::Color::White;
             if idx_r % 2 == 0 {
                 if idx_c % 2 == 0 {
@@ -269,16 +469,73 @@ fn main() {
                     square_color = ansi_term::Color::White;
                 }
             }
-            if chess_board.square_contains_piece_square(row, col){
-                let cur_piece = chess_board.get_piece_at(row, col).expect("square_contains_piece_square to work as intended");
-                match cur_piece.piece_type{
-                    PieceType::Pawn => print!("{}",square_color.paint("P")),
-                    _ => print!("{}",square_color.paint("X")),
-                }
+            if square_contains_piece_square(&chess_board, rank, file){
+                
+                let cur_piece = get_piece_at(&chess_board,rank, file).expect("square_contains_piece_square to work as intended");
+                cur_pos.push((file,rank));
+                paint_piece(&cur_piece);
             }else{
                 print!("{}",square_color.paint("#"));
             }
         }
-        println!("");
+            println!("");
+
+        }
+            let mut input_buffer = String::new();
+            let result = io::stdin().read_line(&mut input_buffer);
+            if !result.is_ok() {
+                unreachable!("We have to get something from stdin...");
+            }
+            if input_buffer == String::from("END\n"){
+                break 'game;
+            }
+            
+            //if a move is being input
+            if input_buffer.starts_with("P") || 
+                input_buffer.starts_with("N") || 
+                input_buffer.starts_with("I") || 
+                input_buffer.starts_with("R") || 
+                input_buffer.starts_with("Q") || 
+                input_buffer.starts_with("K") {
+                    if input_buffer.len() < 5{
+                        //invalid input. valid input is Pe4e5, 
+                    }else{
+                        let source_square = input_buffer.get(1..3).expect("input buffer to havee 1..3"); 
+                        let dest_square =  input_buffer.get(3..5).expect("input buffer to have 3..5"); 
+                        
+                        
+                        let src_file = source_square.chars().nth(0).expect("source square to have .nth(1)");
+                        let src_rank = source_square.chars().nth(1).expect("source square to have .nth(2)");
+
+                        let dst_file = dest_square.chars().nth(0).expect("dest square to have .nth(3)");
+                        let dst_rank = dest_square.chars().nth(1).expect("des square to have .nth(4)");
+
+                        if square_contains_piece_square(
+                            &chess_board, 
+                            SquareRank::from_char(src_rank) as u8 , 
+                            SquareFile::from_char(src_file) as u8 //
+                            ){
+
+                            //println!("You have selected a valid piece");
+                            let piece_id = get_piece_id_at( 
+                                &chess_board, 
+                                &Square{file : SquareFile::from_char(src_file) as u8, 
+                                       rank: SquareRank::from_char(src_rank) as u8}
+                                );
+                                                                   
+                            move_piece(&mut chess_board, piece_id, 
+                                &Square{file : SquareFile::from_char(dst_file) as u8, 
+                                       rank: SquareRank::from_char(dst_rank) as u8}
+                                       );
+
+                        }else{
+                            println!("You selected an empty square, plese select a square with a piece in it");
+                        }
+                    }
+            }
     }
 }
+
+
+
+
