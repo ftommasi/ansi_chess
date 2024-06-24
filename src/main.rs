@@ -11,6 +11,29 @@ enum PieceType{
     King  ,
 }
 
+impl PieceType{
+    fn to_str(&self) -> &str{
+        match self{
+            PieceType::None   => {"None"},
+            PieceType::Pawn   => {"Pawn"},
+            PieceType::Knight => {"Knight"},
+            PieceType::Bishop => {"Bishop"},
+            PieceType::Rook   => {"Rook"},
+            PieceType::Queen  => {"Queen"},
+            PieceType::King   => {"King"},
+        }
+    }
+}
+
+fn print_possible_moves(piece :&Piece){
+    println!("The selected Piece is {}({}): \n{{",
+             piece.id,piece.piece_type.to_str());
+    for possible_move in &piece.possible_moves{
+        print!("{}{}, ",SquareFile::from(possible_move.file).to_str(),SquareRank::from(possible_move.rank).to_str());
+    }
+    println!("}};");
+}
+
 fn paint_piece(piece : &Piece){
     match piece.piece_type{
                 PieceType::Pawn  => {
@@ -97,6 +120,18 @@ impl SquareFile{
             _ => unreachable!("{} exceeds File value!",val),
         }
     }
+    fn to_str(&self) -> &str{
+        match self {
+            Self::A => "A" ,
+            Self::B => "B" ,
+            Self::C => "C" ,
+            Self::D => "D" ,
+            Self::E => "E" ,
+            Self::F => "F" ,
+            Self::G => "G" ,
+            Self::H => "H" ,
+        }
+    }
 }
 
 enum SquareRank{
@@ -135,6 +170,19 @@ impl SquareRank{
             '6' => Self::SEVENTH,
             '7' => Self::EIGHTH,
             _ => unreachable!("{} exceeds Rank value!",val),
+        }
+    }
+
+    fn to_str(&self) -> &str{
+        match self {
+            Self::FIRST => "1" ,
+            Self::SECOND => "2" ,
+            Self::THIRD => "3" ,
+            Self::FOURTH => "4" ,
+            Self::FIFTH => "5" ,
+            Self::SIXTH => "6" ,
+            Self::SEVENTH => "7" ,
+            Self::EIGHTH => "8" ,
         }
     }
 }
@@ -537,6 +585,7 @@ fn move_piece(b: &mut Board, piece_id : u8, new_pos : &Square){
 
             if !found_move{
                 println!("selected move not in list of valid moves for selected piece");
+                print_possible_moves(piece);
                 println!("Here are the valid moves for {:?}:\n {:?}", 
                          piece, 
                          piece.possible_moves.as_slice());
@@ -636,6 +685,12 @@ impl Board{
         }
     }
 
+    fn print_pieces(&self){
+        for piece in &self.pieces{
+            println!("({}): {}, [{}{}]",piece.id, piece.piece_type.to_str(), SquareFile::from(piece.position.file).to_str(), SquareRank::from(piece.position.rank).to_str());
+        }
+    }
+
 }
 
 #[derive(Clone,Debug)]
@@ -699,11 +754,11 @@ impl Piece{
             pieces.push(Self::new(7,2,PieceColor::Black,PieceType::Bishop));
             pieces.push(Self::new(7,5,PieceColor::Black,PieceType::Bishop));
 
-            pieces.push(Self::new(0,4,PieceColor::White,PieceType::Queen));
-            pieces.push(Self::new(7,4,PieceColor::Black,PieceType::Queen));
+            pieces.push(Self::new(0,4,PieceColor::White,PieceType::King));
+            pieces.push(Self::new(7,4,PieceColor::Black,PieceType::King));
 
-            pieces.push(Self::new(0,3,PieceColor::White,PieceType::King));
-            pieces.push(Self::new(7,3,PieceColor::Black,PieceType::King));
+            pieces.push(Self::new(0,3,PieceColor::White,PieceType::Queen));
+            pieces.push(Self::new(7,3,PieceColor::Black,PieceType::Queen));
         pieces
     }
    
@@ -731,6 +786,7 @@ fn main() {
     let mut cur_pos : Vec<(u8,u8)> = vec![];
     for (idx_r,rank) in (0..8).rev().enumerate(){ //POV: Playing as white pieces
     //for (idx_r,rank) in (0..8).enumerate(){ //POV: Playing as black pieces
+        print!("{}. ", ansi_term::Color::Purple.paint((rank+1).to_string()));
         for (idx_c,file) in (0..8).enumerate(){
             //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
            
@@ -760,6 +816,12 @@ fn main() {
             println!("");
 
         }
+            print!("   "); // padding
+            for (_,file) in (0..8).enumerate(){
+                print!("{}", ansi_term::Color::Purple.paint(SquareFile::from(file).to_str()));
+            }
+            println!("");
+            chess_board.print_pieces();
             let mut input_buffer = String::new();
             let result = io::stdin().read_line(&mut input_buffer);
             if !result.is_ok() {
@@ -777,7 +839,7 @@ fn main() {
                 input_buffer.starts_with("Q") || 
                 input_buffer.starts_with("K") {
                     if input_buffer.len() < 5{
-                        //invalid input. valid input is Pe4e5, 
+                        //invalid input. valid input e.g. 'Pe4e5g, 
                     }else{
                         let source_square = input_buffer.get(1..3).expect("input buffer to havee 1..3"); 
                         let dest_square =  input_buffer.get(3..5).expect("input buffer to have 3..5"); 
@@ -791,20 +853,20 @@ fn main() {
 
                         if square_contains_piece_square(
                             &chess_board, 
-                            SquareRank::from_char(src_rank) as u8 , 
+                            SquareRank::from_char(src_rank) as u8 - 1, 
                             SquareFile::from_char(src_file) as u8 //
                             ){
 
                             //println!("You have selected a valid piece");
                             let piece_id = get_piece_id_at( 
                                 &chess_board, 
-                                &Square{file : SquareFile::from_char(src_file) as u8, 
-                                       rank: SquareRank::from_char(src_rank) as u8}
+                                &Square{file : SquareFile::from_char(src_file) as u8 - 1, 
+                                       rank: SquareRank::from_char(src_rank) as u8   }
                                 );
                                                                    
                             move_piece(&mut chess_board, piece_id, 
-                                &Square{file : SquareFile::from_char(dst_file) as u8, 
-                                       rank: SquareRank::from_char(dst_rank) as u8}
+                                &Square{file : SquareFile::from_char(dst_file) as u8 - 1, 
+                                       rank: SquareRank::from_char(dst_rank) as u8   }
                                        );
                             //
                             //if we successfully move a piece then we tick a turn
