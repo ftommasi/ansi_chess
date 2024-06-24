@@ -147,6 +147,7 @@ struct Square{
 }
 
 impl Square {
+
     fn new(rank : SquareRank, file : SquareFile) -> Self{
         Self{rank : rank as u8, file: file as u8}
     }
@@ -168,10 +169,18 @@ impl Square {
     }
 }
 
+
+#[derive(Clone,Debug)]
+enum TurnColor{
+    WhitesTurn =0,
+    BlacksTurn,
+}
+
 #[derive(Clone,Debug)]
 struct Board {
     pieces : Vec<Piece>,
     squares : Vec<Vec<Square>>,
+    turn : TurnColor,
 }
 
 fn get_piece_id_at(b: &Board, new_pos : &Square) -> u8{
@@ -528,6 +537,9 @@ fn move_piece(b: &mut Board, piece_id : u8, new_pos : &Square){
 
             if !found_move{
                 println!("selected move not in list of valid moves for selected piece");
+                println!("Here are the valid moves for {:?}:\n {:?}", 
+                         piece, 
+                         piece.possible_moves.as_slice());
             }
 
             // reclaculate moves here. Calling another self, mut function is not working and this
@@ -611,6 +623,16 @@ impl Board{
         Self{
             pieces : Piece::all(),//vec![Piece::new();16],
             squares : Square::all(),
+            turn : TurnColor::WhitesTurn,
+        }
+    }
+    
+    //TODO: Here we might want to add notation, switch clocks, or some other events that may happen
+    //at the end of a turn
+    fn advance_turn(&mut self){
+        match self.turn{
+            TurnColor::WhitesTurn => {self.turn = TurnColor::BlacksTurn},
+            TurnColor::BlacksTurn => {self.turn = TurnColor::WhitesTurn},
         }
     }
 
@@ -784,6 +806,9 @@ fn main() {
                                 &Square{file : SquareFile::from_char(dst_file) as u8, 
                                        rank: SquareRank::from_char(dst_rank) as u8}
                                        );
+                            //
+                            //if we successfully move a piece then we tick a turn
+                            chess_board.advance_turn();
 
                         }else{
                             println!("You selected an empty square, plese select a square with a piece in it");
