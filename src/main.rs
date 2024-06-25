@@ -1,4 +1,5 @@
-use std::{ascii::AsciiExt, io};
+use std::{ascii::AsciiExt, io, ops::Add, ops::Sub};
+
 
 #[derive(Clone,Debug)]
 enum PieceType{
@@ -29,7 +30,7 @@ fn print_possible_moves(piece :&Piece){
     println!("The selected Piece is {}({}): \n{{",
              piece.id,piece.piece_type.to_str());
     for possible_move in &piece.possible_moves{
-        print!("{}{}, ",SquareFile::from(possible_move.file).to_str(),SquareRank::from(possible_move.rank).to_str());
+        print!("{}{}, ",possible_move.file.to_str(),possible_move.rank.to_str());
     }
     println!("}};");
 }
@@ -82,6 +83,7 @@ enum PieceColor{
     White,
 }
 
+#[derive(Clone,Debug,Eq,PartialEq, PartialOrd)]
 enum SquareFile{
     A = 0,
     B,
@@ -92,6 +94,21 @@ enum SquareFile{
     G,
     H,
 }
+
+impl Add<u8> for SquareFile{
+    fn add(self, rhs: u8) -> Self{
+        Self::from(self.to_u8() + rhs)
+    }
+    type Output = Self;
+}
+
+impl Sub<u8> for SquareFile{
+    fn sub(self, rhs: u8) -> Self{
+        Self::from(self.to_u8() - rhs)
+    }
+    type Output = Self;
+}
+
 
 impl SquareFile{
     fn from(val : u8) -> Self{
@@ -132,8 +149,22 @@ impl SquareFile{
             Self::H => "H" ,
         }
     }
+
+    fn to_u8(&self) -> u8{
+        match self {
+            Self::A => 1 ,
+            Self::B=> 2 ,
+            Self::C=> 3 ,
+            Self::D=> 4 ,
+            Self::E=> 5 ,
+            Self::F=> 6 ,
+            Self::G=> 7 ,
+            Self::H=> 8 ,
+        }
+    }
 }
 
+#[derive(Clone,Debug,PartialEq,PartialOrd)]
 enum SquareRank{
     FIRST = 0,
     SECOND,
@@ -145,7 +176,25 @@ enum SquareRank{
     EIGHTH,
 }
 
+
+
+impl Add<u8> for SquareRank{
+    fn add(self, rhs: u8) -> Self{
+        Self::from(self.to_u8() + rhs)
+    }
+    type Output = Self;
+}
+
+impl Sub<u8> for SquareRank{
+    fn sub(self, rhs: u8) -> Self{
+        Self::from(self.to_u8() - rhs)
+    }
+    type Output = Self;
+}
+
 impl SquareRank{
+    
+    
     fn from(val : u8) -> Self{
         match val{
             0 => Self::FIRST,
@@ -154,7 +203,6 @@ impl SquareRank{
             3 => Self::FOURTH,
             4 => Self::FIFTH,
             5 => Self::SIXTH,
-            6 => Self::SEVENTH,
             7 => Self::EIGHTH,
             _ => unreachable!("{} exceeds Rank value!",val),
         }
@@ -185,23 +233,36 @@ impl SquareRank{
             Self::EIGHTH => "8" ,
         }
     }
+
+    fn to_u8(&self) -> u8{
+        match self {
+            Self::FIRST => 1 ,
+            Self::SECOND => 2 ,
+            Self::THIRD => 3 ,
+            Self::FOURTH => 4 ,
+            Self::FIFTH => 5 ,
+            Self::SIXTH => 6 ,
+            Self::SEVENTH => 7 ,
+            Self::EIGHTH => 8 ,
+        }
+    }
 }
 
 
 #[derive(Clone,Debug)]
 struct Square{
-    rank : u8,
-    file : u8,
+    rank : SquareRank,
+    file : SquareFile,
 }
 
 impl Square {
 
     fn new(rank : SquareRank, file : SquareFile) -> Self{
-        Self{rank : rank as u8, file: file as u8}
+        Self{ rank ,  file }
     }
 
     fn eq(&self,other : &Self) -> bool{
-        return self.file == other.file && self.rank == other.rank;
+        return (self.file ==  other.file) && (self.rank == other.rank);
     }
 
     fn all() -> Vec<Vec<Square>> {
@@ -232,7 +293,7 @@ struct Board {
 }
 
 fn get_piece_id_at(b: &Board, new_pos : &Square) -> u8{
-    if let Some(piece)  = get_piece_at(b,new_pos.rank, new_pos.file){
+    if let Some(piece)  = get_piece_at(b,new_pos.rank.clone(), new_pos.file.clone()){
         piece.id
     }else{
         255 // ERROR value ?
@@ -247,61 +308,62 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
     match piece.piece_type{
         PieceType::Pawn  => {
             match piece.color{
+                //TODO: Remove all these clones....
                 PieceColor::Black => {
-                    if piece.position.rank == 6{ //Pawn has not moved
-                        if !square_contains_piece_square(board,piece.position.rank-2,piece.position.file){
-                            valid_moves.push(Square{rank:piece.position.rank-2,file:piece.position.file});
+                    if piece.position.rank == SquareRank::SEVENTH{ //Pawn has not moved
+                        if !square_contains_piece_square(board,piece.position.clone().clone().rank-2,piece.position.clone().file){
+                            valid_moves.push(Square{rank: piece.position.clone().rank-2,file:piece.position.clone().file});
                         }
                     }
 
-                    if !square_contains_piece_square(board,piece.position.rank-1,piece.position.file){
-                        valid_moves.push(Square{rank:piece.position.rank-1,file:piece.position.file});
+                    if !square_contains_piece_square(board,piece.position.clone().rank-1,piece.position.clone().file){
+                        valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file});
                     }
                 },
                 PieceColor::White => {
-                    if piece.position.rank == 1{ //Pawn has not moved
-                        if !square_contains_piece_square(board,piece.position.rank+2,piece.position.file){
-                            valid_moves.push(Square{rank:piece.position.rank+2,file:piece.position.file});
+                    if piece.position.clone().rank == SquareRank::SECOND{ //Pawn has not moved
+                        if !square_contains_piece_square(board,piece.position.clone().rank+2,piece.position.clone().file){
+                            valid_moves.push(Square{rank: piece.position.clone().rank+2,file:piece.position.clone().file});
                         }
                     }
 
-                    if !square_contains_piece_square(board,piece.position.rank+1,piece.position.file){
-                        valid_moves.push(Square{rank:piece.position.rank+1,file:piece.position.file});
+                    if !square_contains_piece_square(board,piece.position.clone().rank+1,piece.position.clone().file){
+                        valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file});
                     }
                 },
             }
         },
         PieceType::Knight  => {
-            let cur_file = piece.position.file;
-            let cur_rank = piece.position.rank;
+            let file = piece.position.file;
+            let rank = piece.position.rank;
 
             //TODO: Some of these are out of bounds
-            valid_moves.push(Square{file: cur_file + 1, rank: cur_rank + 2});
+            valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() + 2});
 
-            if cur_rank >= 2 {
-                valid_moves.push(Square{file: cur_file + 1, rank: cur_rank - 2});
+            if rank>= SquareRank::SECOND {
+                valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() - 2});
             }
 
 
-            if cur_file >= 1 {
-                valid_moves.push(Square{file: cur_file - 1, rank: cur_rank + 2});
+            if file>= SquareFile::A {
+                valid_moves.push(Square{file: file.clone() - 1, rank: rank.clone() + 2});
             }
 
-            if cur_file >= 1 && cur_rank >= 2 {
-                valid_moves.push(Square{file: cur_file - 1, rank: cur_rank - 2});
+            if file>= SquareFile::A && rank>= SquareRank::SECOND {
+                valid_moves.push(Square{file: file.clone() -1 , rank: rank.clone() - 2});
             }
 
-            if cur_file >= 2{
-                valid_moves.push(Square{file: cur_file - 2, rank: cur_rank + 1});
+            if file >= SquareFile::B{
+                valid_moves.push(Square{file: file.clone() - 2, rank: rank.clone() + 1});
             }
 
-            if cur_file >= 2 && cur_rank >= 1 {
-                valid_moves.push(Square{file: cur_file - 2, rank: cur_rank - 1});
+            if file>= SquareFile::B && rank   >= SquareRank::FIRST {
+                valid_moves.push(Square{file: file.clone() - 2 , rank: rank.clone() - 1});
             }
 
-            valid_moves.push(Square{file: cur_file + 2, rank: cur_rank + 1});
-            if cur_rank >= 1{
-                valid_moves.push(Square{file: cur_file + 2, rank: cur_rank - 1});
+            valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() + 1});
+            if rank>= SquareRank::FIRST{
+                valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() - 1});
             }
         },
 
@@ -311,10 +373,10 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
             //TODO: Some of these might be out of bounds. Verify
             //for each diagonal
-                let mut rank = cur_rank;
-                let mut file = cur_file;
+                let mut rank = cur_rank ;
+                let mut file = cur_file ;
             loop { 
-                if rank > SquareRank::EIGHTH as u8 || file > SquareFile::H as u8 {
+                if rank > SquareRank::EIGHTH  || file > SquareFile::H  {
                     break;
 
                 }
@@ -327,10 +389,11 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = cur_rank;
                 file = cur_file;
             loop { 
-                if rank > SquareRank::EIGHTH as u8 || file == SquareFile::A as u8 {
+                if rank > SquareRank::EIGHTH  || file == SquareFile::A  {
                     break;
 
                 }
+
                 rank = rank + 1;
                 file = file - 1;
 
@@ -340,12 +403,14 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = cur_rank;
                 file = cur_file;
             loop { 
-                if rank == SquareRank::FIRST as u8 || file > SquareFile::H as u8 {
+                if rank == SquareRank::FIRST || file > SquareFile::H {
                     break;
 
                 }
-                rank = rank - 1;
-                file = file + 1;
+
+
+                rank = SquareRank::from(rank as u8 - 1);
+                file = SquareFile::from(file as u8 + 1);
 
                 valid_moves.push(Square{file ,rank});
             }
@@ -353,10 +418,11 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = cur_rank;
                 file = cur_file;
             loop { 
-                if rank == SquareRank::FIRST as u8 || file == SquareFile::A as u8 {
+                if rank == SquareRank::FIRST  || file == SquareFile::A  {
                     break;
 
                 }
+
                 rank = rank - 1;
                 file = file - 1;
 
@@ -371,7 +437,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let mut rank = cur_rank;
             let mut file = cur_file;
             loop { 
-                if file == SquareFile::A as u8 {
+                if file == SquareFile::A  {
                     break;
                 }
                 file = file - 1;
@@ -381,7 +447,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             file = cur_file;
             loop { 
 
-                if rank == SquareRank::FIRST as u8 {
+                if rank == SquareRank::FIRST  {
                     break;
                 }
                 rank = rank - 1;
@@ -390,7 +456,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             rank = cur_rank;
             file = cur_file;
             loop { 
-                if file > SquareFile::H as u8 {
+                if file > SquareFile::H  {
                     break;
                 }
                 file = file + 1;
@@ -400,7 +466,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             file = cur_file;
             loop { 
 
-                if rank > SquareRank::EIGHTH as u8 {
+                if rank > SquareRank::EIGHTH  {
                     break;
                 }
                 rank = rank + 1;
@@ -416,7 +482,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 let mut rank = cur_rank;
                 let mut file = cur_file;
             loop { 
-                if rank > SquareRank::EIGHTH as u8 || file > SquareFile::H as u8 {
+                if rank > SquareRank::EIGHTH  || file > SquareFile::H  {
                     break;
 
                 }
@@ -429,7 +495,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
 
             loop { 
-                if rank > SquareRank::EIGHTH as u8 || file == SquareFile::A as u8 {
+                if rank > SquareRank::EIGHTH  || file == SquareFile::A  {
                     break;
 
                 }
@@ -442,7 +508,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
 
             loop { 
-                if rank == SquareRank::FIRST as u8 || file > SquareFile::H as u8 {
+                if rank == SquareRank::FIRST  || file > SquareFile::H  {
                     break;
 
                 }
@@ -455,7 +521,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = cur_rank;
                 file = cur_file;
             loop { 
-                if rank == SquareRank::FIRST as u8 || file == SquareFile::A as u8 {
+                if rank == SquareRank::FIRST  || file == SquareFile::A  {
                     break;
 
                 }
@@ -468,7 +534,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
             loop { 
 
-                if file == SquareFile::A as u8 {
+                if file == SquareFile::A  {
                     break;
                 }
                 file = file - 1;
@@ -478,7 +544,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
             loop { 
 
-                if rank == SquareRank::FIRST as u8 {
+                if rank == SquareRank::FIRST  {
                     break;
                 }
                 rank = rank - 1;
@@ -488,7 +554,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
             loop { 
 
-                if file > SquareFile::H as u8 {
+                if file > SquareFile::H  {
                     break;
                 }
                 file = file + 1;
@@ -498,7 +564,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file;
             loop { 
 
-                if rank > SquareRank::EIGHTH as u8 {
+                if rank > SquareRank::EIGHTH  {
                     break;
                 }
                 rank = rank + 1;
@@ -515,16 +581,16 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             valid_moves.push(Square{file: file + 1 ,rank});
             valid_moves.push(Square{file ,rank : rank + 1});
 
-            if rank >= 1{
+            if rank >= SquareRank::FIRST{
                 valid_moves.push(Square{file: file + 1 , rank: rank - 1});
                 valid_moves.push(Square{file ,rank : rank - 1});
             }
-            if file >= 1{
+            if file >= SquareFile::A{
                 valid_moves.push(Square{file: file - 1 , rank: rank + 1});
                 valid_moves.push(Square{file: file - 1 ,rank});
             }
 
-            if rank >1 && file >= 1{
+            if rank >SquareRank::FIRST && file >= SquareFile::A{
                 valid_moves.push(Square{file: file - 1 , rank: rank - 1});
             }
         },
@@ -534,12 +600,12 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
     valid_moves
 }
-    fn square_contains_piece_square(b : &Board, rarnk : u8, file : u8) -> bool{
+    fn square_contains_piece_square(b : &Board, rank : SquareRank, file : SquareFile) -> bool{
         for piece in b.pieces.as_slice(){
             match piece.piece_type {
                 _ => {/* do noething*/}
             }
-            if piece.position.rank == rarnk && piece.position.file == file{
+            if piece.position.rank == rank && piece.position.file == file{
                 return true;
             }
         }
@@ -547,9 +613,9 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
     }
 
 
-    fn get_piece_at(b : &Board, rarnk : u8, file : u8) -> Option<Piece>{
+    fn get_piece_at(b : &Board, rank : SquareRank, file : SquareFile) -> Option<Piece>{
         for piece in b.pieces.as_slice(){
-            if piece.position.rank == rarnk && piece.position.file == file{
+            if piece.position.rank == rank && piece.position.file == file{
                 return Some(piece.clone());
             }
         }
@@ -839,8 +905,7 @@ fn main() {
                 input_buffer.starts_with("Q") || 
                 input_buffer.starts_with("K") {
                     if input_buffer.len() < 5{
-                        //invalid input. valid input e.g. 'Pe4e5g, 
-                    }else{
+                        //invalid input. valid input e.g. 'Pe4e5g, }else{
                         let source_square = input_buffer.get(1..3).expect("input buffer to havee 1..3"); 
                         let dest_square =  input_buffer.get(3..5).expect("input buffer to have 3..5"); 
                         
@@ -850,23 +915,25 @@ fn main() {
 
                         let dst_file = dest_square.chars().nth(0).expect("dest square to have .nth(3)");
                         let dst_rank = dest_square.chars().nth(1).expect("des square to have .nth(4)");
+                        
+
 
                         if square_contains_piece_square(
                             &chess_board, 
-                            SquareRank::from_char(src_rank) as u8 - 1, 
-                            SquareFile::from_char(src_file) as u8 //
+                            SquareRank::from_char(src_rank)  , 
+                            SquareFile::from_char(src_file)  //
                             ){
 
                             //println!("You have selected a valid piece");
                             let piece_id = get_piece_id_at( 
                                 &chess_board, 
-                                &Square{file : SquareFile::from_char(src_file) as u8 - 1, 
-                                       rank: SquareRank::from_char(src_rank) as u8   }
+                                &Square{file : SquareFile::from_char(src_file)  , 
+                                       rank: SquareRank::from_char(src_rank)    }
                                 );
                                                                    
                             move_piece(&mut chess_board, piece_id, 
-                                &Square{file : SquareFile::from_char(dst_file) as u8 - 1, 
-                                       rank: SquareRank::from_char(dst_rank) as u8   }
+                                &Square{file : SquareFile::from_char(dst_file)  , 
+                                       rank: SquareRank::from_char(dst_rank)    }
                                        );
                             //
                             //if we successfully move a piece then we tick a turn
