@@ -27,7 +27,7 @@ impl PieceType{
 }
 
 fn print_possible_moves(piece :&Piece){
-    println!("The selected Piece is {}({}): \n{{",
+    println!("The selected Piece is {}({}): dumping moves\n{{",
              piece.id,piece.piece_type.to_str());
     for possible_move in &piece.possible_moves{
         print!("{}{}, ",possible_move.file.to_str(),possible_move.rank.to_str());
@@ -84,9 +84,10 @@ enum PieceColor{
     White,
 }
 
+//TODO: Need to implement iterators or ranges in some way
 #[derive(Clone,Debug,Eq,PartialEq, PartialOrd)]
 enum SquareFile{
-    A = 0,
+    A = 1,
     B,
     C,
     D,
@@ -114,15 +115,15 @@ impl Sub<u8> for SquareFile{
 impl SquareFile{
     fn from(val : u8) -> Self{
         match val{
-            0 => Self::A,
-            1 => Self::B,
-            2 => Self::C,
-            3 => Self::D,
-            4 => Self::E,
-            5 => Self::F,
-            6 => Self::G,
-            7 => Self::H,
-            8 => Self::H, //TODO: This weird little hack...
+            1 => Self::A,
+            2 => Self::B,
+            3 => Self::C,
+            4 => Self::D,
+            5 => Self::E,
+            6 => Self::F,
+            7 => Self::G,
+            8 => Self::H,
+            //8 => Self::H, //TODO: This weird little hack...
             _ => unreachable!("{} exceeds File value!",val),
         }
     }
@@ -166,9 +167,10 @@ impl SquareFile{
     }
 }
 
+//TODO Need to implement iterators or ranges in some way
 #[derive(Clone,Debug,PartialEq,PartialOrd)]
 enum SquareRank{
-    FIRST = 0,
+    FIRST = 1,
     SECOND,
     THIRD,
     FOURTH,
@@ -199,15 +201,15 @@ impl SquareRank{
    
     fn from(val : u8) -> Self{
         match val{
-            0 => Self::FIRST,
-            1 => Self::SECOND,
-            2 => Self::THIRD,
-            3 => Self::FOURTH,
-            4 => Self::FIFTH,
-            5 => Self::SIXTH,
-            6 => Self::SEVENTH,
-            7 => Self::EIGHTH,
-            8 => Self::EIGHTH, //TODO: This weird little hack
+            1 => Self::FIRST,
+            2 => Self::SECOND,
+            3 => Self::THIRD,
+            4 => Self::FOURTH,
+            5 => Self::FIFTH,
+            6 => Self::SIXTH,
+            7 => Self::SEVENTH,
+            8 => Self::EIGHTH,
+            //8 => Self::EIGHTH, //TODO: This weird little hack
             _ => unreachable!("{} exceeds Rank value!",val),
         }
     }
@@ -271,9 +273,9 @@ impl Square {
 
     fn all() -> Vec<Vec<Square>> {
         let mut ranks = vec![];
-        for rank in 0..8{
+        for rank in 1..9{
             let mut squares = vec![];
-            for file in 0..8{
+            for file in 1..9{
                 squares.push(Self::new(SquareRank::from(rank),SquareFile::from(file)));
             }
             ranks.push(squares);
@@ -342,12 +344,14 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let file = &piece.position.file;
             let rank = &piece.position.rank;
 
+            println!("Knight Starting point {}{}",file.to_str(),rank.to_str());
+
             //TODO: Some of these are out of bounds
             if rank <= &SquareRank::SIXTH && file <= &SquareFile::G{
                 valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() + 2});
             }
 
-            if rank >= &SquareRank::SECOND && file <= &SquareFile::G {
+            if rank >= &SquareRank::THIRD && file <= &SquareFile::G {
                 valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() - 2});
             }
 
@@ -355,15 +359,15 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 valid_moves.push(Square{file: file.clone() - 1, rank: rank.clone() + 2});
             }
 
-            if file >= &SquareFile::A && rank>= &SquareRank::SECOND {
+            if file >= &SquareFile::A && rank>= &SquareRank::THIRD {
                 valid_moves.push(Square{file: file.clone() -1 , rank: rank.clone() - 2});
             }
 
-            if file >= &SquareFile::B && rank <= &SquareRank::SIXTH{
+            if file >= &SquareFile::C && rank <= &SquareRank::SIXTH{
                 valid_moves.push(Square{file: file.clone() - 2, rank: rank.clone() + 1});
             }
 
-            if file >= &SquareFile::B && rank   >= &SquareRank::FIRST {
+            if file >= &SquareFile::C && rank   >= &SquareRank::SECOND {
                 valid_moves.push(Square{file: file.clone() - 2 , rank: rank.clone() - 1});
             }
 
@@ -371,7 +375,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() + 1});
             }
 
-            if rank >= &SquareRank::FIRST && file <= &SquareFile::F{
+            if rank >= &SquareRank::SECOND && file <= &SquareFile::F{
                 valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() - 1});
             }
         },
@@ -379,6 +383,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
         PieceType::Bishop  => {
             let cur_file = &piece.position.file;
             let cur_rank = &piece.position.rank;
+            println!("Bishop Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
 
             //TODO: Some of these might be out of bounds. Verify
             //for each diagonal
@@ -389,9 +394,9 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     break;
 
                 }
-                rank = rank + 1 as u8 ;
-                file = file + 1 as u8 ;
-
+                rank = rank + 1 ;
+                file = file + 1 ;
+                println!("B1: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
 
@@ -406,6 +411,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank + 1;
                 file = file - 1;
 
+                println!("B2: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
 
@@ -420,6 +426,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank - 1;
                 file = file + 1;
 
+                println!("B3: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
            
@@ -434,6 +441,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank - 1;
                 file = file - 1;
 
+                println!("B4: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
            
@@ -443,6 +451,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let cur_rank = &piece.position.rank ;
             let mut rank = cur_rank.to_u8();
             let mut file = cur_file.to_u8();
+
+            println!("Rook Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
            
 
             loop {
@@ -456,10 +466,10 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             file = cur_file.to_u8();
             loop {
 
-                rank = rank - 1 as u8;
                 if rank == SquareRank::FIRST as u8 || file == SquareFile::A.to_u8(){
                     break;
                 }
+                rank = rank - 1 as u8;
                 valid_moves.push(Square{file: SquareFile::from(file),rank: SquareRank::from(rank)});
             }
             rank = cur_rank.to_u8();
@@ -488,6 +498,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
         PieceType::Queen  => {
             let cur_file = &piece.position.file;
             let cur_rank = &piece.position.rank;
+
+            println!("Queen Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
             //TODO: Some of these might be out of bounds. Verify
             //for each diagonal
                 let mut rank = cur_rank.to_u8() ;
@@ -519,9 +531,9 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file.to_u8();
 
             loop {
-                rank = rank - 1 as u8;
-                file = file + 1 as u8;
-                if rank == SquareRank::FIRST  as u8 || file > SquareFile::H.to_u8()  {
+                rank = rank - 1 ;
+                file = file + 1 ;
+                if rank == SquareRank::FIRST  as u8 || file >= SquareFile::H.to_u8()  {
                     break;
 
                 }
@@ -532,8 +544,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = cur_rank.to_u8();
                 file = cur_file.to_u8();
             loop {
-                rank = rank - 1 as u8;
-                file = file - 1 as u8;
+                rank = rank - 1 ;
+                file = file - 1 ;
                 if rank == SquareRank::FIRST  as u8 || file == SquareFile::A.to_u8()  {
                     break;
 
@@ -545,7 +557,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file.to_u8();
             loop {
 
-                file = file - 1 as u8;
+                file = file - 1 ;
                 if file == SquareFile::A.to_u8()  {
                     break;
                 }
@@ -555,7 +567,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file.to_u8();
             loop {
 
-                rank = rank - 1 as u8;
+                rank = rank - 1 ;
                 if rank == SquareRank::FIRST  as u8 {
                     break;
                 }
@@ -565,7 +577,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 file = cur_file.to_u8();
             loop {
 
-                file = file + 1 as u8;
+                file = file + 1 ;
                 if file > SquareFile::H.to_u8()  {
                     break;
                 }
@@ -587,6 +599,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let file = &piece.position.file;
             let rank = &piece.position.rank;
 
+            println!("King Starting point {}{}",file.to_str(),rank.to_str());
+
             //TODO: Some of these moves are invalid
             if file <= &SquareFile::G && rank <= &SquareRank::SEVENTH{
                 valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() + 1});
@@ -600,7 +614,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 valid_moves.push(Square{file: file.clone() ,rank : rank.clone() + 1});
             }
 
-            if rank >= &SquareRank::FIRST{
+            if rank >= &SquareRank::SECOND{
                 if file <= &SquareFile::G {
                     valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() - 1});
                 }
@@ -613,7 +627,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 valid_moves.push(Square{file: file.clone() - 1 ,rank: rank.clone()});
             }
 
-            if rank > &SquareRank::FIRST && file >= &SquareFile::A{
+            if rank > &SquareRank::SECOND && file >= &SquareFile::A{
                 valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() - 1});
             }
         },
@@ -675,9 +689,6 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
             if !found_move{
                 println!("selected move not in list of valid moves for selected piece");
                 print_possible_moves(piece);
-                println!("Here are the valid moves for {:?}:\n {:?}",
-                         piece,
-                         piece.possible_moves.as_slice());
             }
 
             // reclaculate moves here. Calling another self, mut function is not working and this
@@ -780,7 +791,7 @@ impl Piece{
 
     fn all() -> Vec<Self> {
         let mut pieces = vec![];
-            for file in 0..8{
+            for file in 1..9{
                 pieces.push(Self::new(SquareRank::SECOND,SquareFile::from(file),PieceColor::White,PieceType::Pawn));
                 pieces.push(Self::new(SquareRank::SEVENTH,SquareFile::from(file),PieceColor::Black,PieceType::Pawn));
             }
@@ -830,10 +841,10 @@ fn main() {
     'game : loop{
     //Draw board. Refactor?
     let mut cur_pos : Vec<(u8,u8)> = vec![];
-    for (idx_r,rank) in (0..8).rev().enumerate(){ //POV: Playing as white pieces
-    //for (idx_r,rank) in (0..8).enumerate(){ //POV: Playing as black pieces
+    for (idx_r,rank) in (1..9).rev().enumerate(){ //POV: Playing as white pieces
+    //for (idx_r,rank) in (1..9).enumerate(){ //POV: Playing as black pieces
         print!("{}. ", ansi_term::Color::Purple.paint((rank+1).to_string()));
-        for (idx_c,file) in (0..8).enumerate(){
+        for (idx_c,file) in (1..9).enumerate(){
             //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
            
             let mut square_color = ansi_term::Color::White;
@@ -863,11 +874,11 @@ fn main() {
 
         }
             print!("   "); // padding
-            for (_,file) in (0..8).enumerate(){
+            for (_,file) in (1..9).enumerate(){
                 print!("{}", ansi_term::Color::Purple.paint(SquareFile::from(file).to_str()));
             }
             println!("");
-            chess_board.print_pieces();
+            //chess_board.print_pieces();
             let mut input_buffer = String::new();
             let result = io::stdin().read_line(&mut input_buffer);
             if !result.is_ok() {
