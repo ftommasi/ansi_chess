@@ -28,6 +28,7 @@ impl PieceType{
 
 fn print_possible_moves(piece :&Piece){
     println!("The selected Piece is {}({}): dumping moves\n{{",
+
              piece.id,piece.piece_type.to_str());
     for possible_move in &piece.possible_moves{
         print!("{}{}, ",possible_move.file.to_str(),possible_move.rank.to_str());
@@ -124,6 +125,7 @@ impl SquareFile{
             7 => Self::G,
             8 => Self::H,
             //8 => Self::H, //TODO: This weird little hack...
+
             _ => unreachable!("{} exceeds File value!",val),
         }
     }
@@ -210,6 +212,7 @@ impl SquareRank{
             7 => Self::SEVENTH,
             8 => Self::EIGHTH,
             //8 => Self::EIGHTH, //TODO: This weird little hack
+
             _ => unreachable!("{} exceeds Rank value!",val),
         }
     }
@@ -276,6 +279,7 @@ impl Square {
         for rank in 1..9{
             let mut squares = vec![];
             for file in 1..9{
+
                 squares.push(Self::new(SquareRank::from(rank),SquareFile::from(file)));
             }
             ranks.push(squares);
@@ -533,7 +537,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             loop {
                 rank = rank - 1 ;
                 file = file + 1 ;
-                if rank == SquareRank::FIRST  as u8 || file >= SquareFile::H.to_u8()  {
+                if rank <= SquareRank::FIRST  as u8 || file >= SquareFile::H.to_u8()  {
                     break;
 
                 }
@@ -546,7 +550,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             loop {
                 rank = rank - 1 ;
                 file = file - 1 ;
-                if rank == SquareRank::FIRST  as u8 || file == SquareFile::A.to_u8()  {
+                if rank <= SquareRank::FIRST  as u8 || file == SquareFile::A.to_u8()  {
                     break;
 
                 }
@@ -558,7 +562,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             loop {
 
                 file = file - 1 ;
-                if file == SquareFile::A.to_u8()  {
+                if file <= SquareFile::A.to_u8()  {
                     break;
                 }
                 valid_moves.push(Square{file: SquareFile::from(file),rank: SquareRank::from(rank)});
@@ -568,7 +572,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             loop {
 
                 rank = rank - 1 ;
-                if rank == SquareRank::FIRST  as u8 {
+                if rank <= SquareRank::FIRST  as u8 {
                     break;
                 }
                 valid_moves.push(Square{file: SquareFile::from(file),rank: SquareRank::from(rank)});
@@ -628,6 +632,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             }
 
             if rank > &SquareRank::SECOND && file >= &SquareFile::A{
+
                 valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() - 1});
             }
         },
@@ -792,6 +797,7 @@ impl Piece{
     fn all() -> Vec<Self> {
         let mut pieces = vec![];
             for file in 1..9{
+
                 pieces.push(Self::new(SquareRank::SECOND,SquareFile::from(file),PieceColor::White,PieceType::Pawn));
                 pieces.push(Self::new(SquareRank::SEVENTH,SquareFile::from(file),PieceColor::Black,PieceType::Pawn));
             }
@@ -843,7 +849,7 @@ fn main() {
     let mut cur_pos : Vec<(u8,u8)> = vec![];
     for (idx_r,rank) in (1..9).rev().enumerate(){ //POV: Playing as white pieces
     //for (idx_r,rank) in (1..9).enumerate(){ //POV: Playing as black pieces
-        print!("{}. ", ansi_term::Color::Purple.paint((rank+1).to_string()));
+        print!("{}. ", ansi_term::Color::Purple.paint((rank).to_string()));
         for (idx_c,file) in (1..9).enumerate(){
             //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
            
@@ -879,6 +885,7 @@ fn main() {
             }
             println!("");
             //chess_board.print_pieces();
+
             let mut input_buffer = String::new();
             let result = io::stdin().read_line(&mut input_buffer);
             if !result.is_ok() {
