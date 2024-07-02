@@ -335,6 +335,8 @@ struct Board {
     pieces : Vec<Piece>,
     squares : Vec<Vec<Square>>,
     turn : TurnColor,
+    is_white_king_checked: bool,
+    is_black_king_checked: bool,
 }
 
 fn get_piece_id_at(b: &Board, new_pos : &Square) -> i64{
@@ -367,6 +369,20 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     if !square_contains_piece_square(board,piece.position.clone().rank-1,piece.position.clone().file){
                         valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file});
                     }
+
+                    //Check for capturing pieces
+                    //TODO: Add enpassant logic
+                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank-1,piece.position.clone().file+1){
+                            if piece.color == PieceColor::White{
+                                valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file+1});
+                            }
+                    }
+                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank-1,piece.position.clone().file-1){
+                        if piece.color == PieceColor::White{
+                            valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file+1});
+                        }
+                        valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file-1});
+                    }
                 },
                 PieceColor::White => {
                     if piece.position.clone().rank == SquareRank::SECOND{ //Pawn has not moved
@@ -377,6 +393,20 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
                     if !square_contains_piece_square(board,piece.position.clone().rank+1,piece.position.clone().file){
                         valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file});
+                    }
+
+                    //Check for capturing pieces
+                    //TODO: Add enpassant logic
+                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank+1,piece.position.clone().file+1){
+                            if piece.color == PieceColor::White{
+                                valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file+1});
+                            }
+                    }
+                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank+1,piece.position.clone().file-1){
+                        if piece.color == PieceColor::White{
+                            valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file+1});
+                        }
+                        valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file-1});
                     }
                 },
             }
@@ -1014,6 +1044,8 @@ impl Board{
             pieces : Piece::all(),//vec![Piece::new();16],
             squares : Square::all(),
             turn : TurnColor::WhitesTurn,
+            is_white_king_checked: false,
+            is_black_king_checked: false,
         }
     }
    
