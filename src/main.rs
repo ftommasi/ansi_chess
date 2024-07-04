@@ -427,16 +427,20 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
-                    if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
+                    if piece.position.file < SquareFile::G { 
+                        if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
                             if piece.color == PieceColor::White{
                                 valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
                             }
-                    }
-                    if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
-                        if piece.color == PieceColor::White{
-                            valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
                         }
-                        valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1});
+                    }
+                    if piece.position.file >= SquareFile::B { 
+                        if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
+                            if piece.color == PieceColor::White{
+                                valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
+                            }
+                            valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1});
+                        }
                     }
                 },
                 PieceColor::White => {
@@ -452,16 +456,21 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
-                    if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
+                    if piece.position.file < SquareFile::G { 
+                        if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
                             if piece.color == PieceColor::White{
                                 valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file+1});
                             }
-                    }
-                    if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
-                        if piece.color == PieceColor::White{
-                            valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file+1});
                         }
-                        valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1});
+                    }
+
+                    if piece.position.file >= SquareFile::B { 
+                        if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
+                            if piece.color == PieceColor::White{
+                                valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1});
+                            }
+                            //valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1}); // I think this is extra
+                        }
                     }
                 },
             }
@@ -1244,6 +1253,10 @@ impl Piece{
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
+    interactive_mode();
+}
+
+fn interactive_mode() {
     let mut chess_board = Board::new();
     //init board
     //TODO: I;m sure there is a better way to do this, doing it the quick and dirty way for now
