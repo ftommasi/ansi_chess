@@ -37,7 +37,53 @@ fn print_possible_moves(piece :&Piece){
 
 }
 
+
+fn piece_string(piece : &Piece) -> String{
+    match piece.piece_type{
+                PieceType::Pawn  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("P").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("P").to_string(),
+                    }
+                }
+                PieceType::Knight  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("N").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("N").to_string(),
+                    }
+                }
+                PieceType::Bishop  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("I").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("I").to_string(),
+                    }
+                }
+                PieceType::Rook  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("R").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("R").to_string(),
+                    }
+                }
+                PieceType::Queen  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("Q").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("Q").to_string(),
+                    }
+                }
+                PieceType::King  => {
+                    match piece.color{
+                        PieceColor::Black =>  ansi_term::Color::Green.paint("K").to_string(),
+                        PieceColor::White =>  ansi_term::Color::White.paint("K").to_string(),
+                    }
+                }
+                 _ => String::from(""), //TODO: What to do in this case. Will this ever happen???
+            }
+}
+
 fn paint_piece(piece : &Piece){
+    ////TODO: Verify this is correct and delete redundant code
+    //below
+    //print!("{}",piece_string(piece)); 
     match piece.piece_type{
                 PieceType::Pawn  => {
                     match piece.color{
@@ -1073,6 +1119,45 @@ impl Board{
         }
     }
 
+    fn to_string(&self) -> String {
+
+        let mut BoardString = String::new();
+
+        for (idx_r,rank) in (1..9).rev().enumerate(){ //POV: Playing as white pieces
+                                                      //for (idx_r,rank) in (1..9).enumerate(){ //POV: Playing as black pieces
+            for (idx_c,file) in (1..9).enumerate(){
+                //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
+
+                let mut square_color = ansi_term::Color::White;
+                if idx_r % 2 == 0 {
+                    if idx_c % 2 == 0 {
+                        square_color = ansi_term::Color::White;
+                    }else{
+                        square_color = ansi_term::Color::Green;
+                    }
+                }else{
+                    if idx_c % 2 == 0 {
+                        square_color = ansi_term::Color::Green;
+                    }else{
+                        square_color = ansi_term::Color::White;
+                    }
+                }
+                if square_contains_piece_square(self, SquareRank::from(rank), SquareFile::from(file)){
+
+                    let cur_piece = get_piece_at(self,SquareRank::from(rank), SquareFile::from(file)).expect("square_contains_piece_square to work as intended");
+                    BoardString.push_str(piece_string(&cur_piece).as_str());
+                }else{
+                    BoardString.push_str(square_color.paint("#").to_string().as_str())
+                }
+            }
+            println!("");
+
+        }
+
+        BoardString
+
+        }
+
 }
 
 #[derive(Clone,Debug)]
@@ -1170,7 +1255,7 @@ fn main() {
    
     'game : loop{
     //Draw board. Refactor?
-    let mut cur_pos : Vec<(u8,u8)> = vec![];
+    let mut cur_pos : Vec<(u8,u8)> = vec![]; 
     for (idx_r,rank) in (1..9).rev().enumerate(){ //POV: Playing as white pieces
     //for (idx_r,rank) in (1..9).enumerate(){ //POV: Playing as black pieces
         print!("{}. ", ansi_term::Color::Purple.paint((rank).to_string()));
@@ -1272,4 +1357,43 @@ fn main() {
     }
 }
 
+#[cfg(test)]
+mod tests{
+    use super::*;
+    #[test]
+    //TODO: verify
+    fn board_as_string_initial(){
+        let mut expected = String::new();
+        let chess_board = Board::new();
+        for (idx_r,rank) in (1..9).rev().enumerate(){ //POV: Playing as white pieces
+            for (idx_c,file) in (1..9).enumerate(){
+                //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
 
+                let mut square_color = ansi_term::Color::White;
+                if idx_r % 2 == 0 {
+                    if idx_c % 2 == 0 {
+                        square_color = ansi_term::Color::White;
+                    }else{
+                        square_color = ansi_term::Color::Green;
+                    }
+                }else{
+                    if idx_c % 2 == 0 {
+                        square_color = ansi_term::Color::Green;
+                    }else{
+                        square_color = ansi_term::Color::White;
+                    }
+                }
+                if square_contains_piece_square(&chess_board, SquareRank::from(rank), SquareFile::from(file)){
+
+                    let cur_piece = get_piece_at(&chess_board,SquareRank::from(rank), SquareFile::from(file)).expect("square_contains_piece_square to work as intended");
+                    expected.push_str(piece_string(&cur_piece).as_str());
+                }else{
+                    expected.push_str(square_color.paint("#").to_string().as_str());
+                }
+            }
+            expected.push_str("");
+
+        }
+            assert_eq!(expected,chess_board.to_string())
+        }
+}
