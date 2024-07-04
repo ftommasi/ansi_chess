@@ -95,7 +95,7 @@ trait SquareTrait{
 
 
 //TODO: Need to implement iterators or ranges in some way
-#[derive(Clone,Debug,Eq,PartialEq, PartialOrd)]
+#[derive(Clone,Debug,Eq,PartialEq, PartialOrd,Copy)]
 enum SquareFile{
     A = 1,
     B,
@@ -192,7 +192,7 @@ impl SquareFile{
 }
 
 //TODO Need to implement iterators or ranges in some way
-#[derive(Clone,Debug,PartialEq,PartialOrd)]
+#[derive(Clone,Debug,PartialEq,PartialOrd,Copy)]
 enum SquareRank{
     FIRST = 1,
     SECOND,
@@ -292,14 +292,23 @@ impl SquareRank{
     }
 }
 
+type SquareTuple = (SquareRank,SquareFile);
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,Copy)]
 struct Square{
     rank : SquareRank,
     file : SquareFile,
 }
 
 impl Square {
+
+    fn from (tup: SquareTuple) -> Self{
+        Self{rank:tup.0,file: tup.1}
+    }
+
+    fn as_tup(&self) -> SquareTuple{
+        (self.rank,self.file)
+    }
 
     fn new(rank : SquareRank, file : SquareFile) -> Self{
         Self{ rank ,  file }
@@ -340,7 +349,7 @@ struct Board {
 }
 
 fn get_piece_id_at(b: &Board, new_pos : &Square) -> i64{
-    if let Some(piece)  = get_piece_at(b,new_pos.rank.clone(), new_pos.file.clone()){
+    if let Some(piece)  = get_piece_at(b,new_pos.rank, new_pos.file){
         println!("Selected piece is {}",piece.piece_type.to_str());
         piece.id
     }else{
@@ -361,172 +370,172 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 //TODO: Remove all these clones....
                 PieceColor::Black => {
                     if piece.position.rank == SquareRank::SEVENTH{ //Pawn has not moved
-                        if !square_contains_piece_square(board,piece.position.clone().rank-2,piece.position.clone().file){
-                            valid_moves.push(Square{rank: piece.position.clone().rank-2,file:piece.position.clone().file});
+                        if !square_contains_piece_square(board,piece.position.rank-2,piece.position.file){
+                            valid_moves.push(Square{rank: piece.position.rank-2,file:piece.position.file});
                         }
                     }
 
-                    if !square_contains_piece_square(board,piece.position.clone().rank-1,piece.position.clone().file){
-                        valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file});
+                    if !square_contains_piece_square(board,piece.position.rank-1,piece.position.file){
+                        valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file});
                     }
 
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
-                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank-1,piece.position.clone().file+1){
+                    if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
                             if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file+1});
+                                valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
                             }
                     }
-                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank-1,piece.position.clone().file-1){
+                    if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
                         if piece.color == PieceColor::White{
-                            valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file+1});
+                            valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
                         }
-                        valid_moves.push(Square{rank: piece.position.clone().rank-1,file:piece.position.clone().file-1});
+                        valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1});
                     }
                 },
                 PieceColor::White => {
-                    if piece.position.clone().rank == SquareRank::SECOND{ //Pawn has not moved
-                        if !square_contains_piece_square(board,piece.position.clone().rank+2,piece.position.clone().file){
-                            valid_moves.push(Square{rank: piece.position.clone().rank+2,file:piece.position.clone().file});
+                    if piece.position.rank == SquareRank::SECOND{ //Pawn has not moved
+                        if !square_contains_piece_square(board,piece.position.rank+2,piece.position.file){
+                            valid_moves.push(Square{rank: piece.position.rank+2,file:piece.position.file});
                         }
                     }
 
-                    if !square_contains_piece_square(board,piece.position.clone().rank+1,piece.position.clone().file){
-                        valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file});
+                    if !square_contains_piece_square(board,piece.position.rank+1,piece.position.file){
+                        valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file});
                     }
 
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
-                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank+1,piece.position.clone().file+1){
+                    if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
                             if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file+1});
+                                valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file+1});
                             }
                     }
-                    if let Some(piece) = get_piece_at(board,piece.position.clone().rank+1,piece.position.clone().file-1){
+                    if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
                         if piece.color == PieceColor::White{
-                            valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file+1});
+                            valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file+1});
                         }
-                        valid_moves.push(Square{rank: piece.position.clone().rank+1,file:piece.position.clone().file-1});
+                        valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1});
                     }
                 },
             }
         },
         PieceType::Knight  => {
-            let file = &piece.position.file;
-            let rank = &piece.position.rank;
+            let file = piece.position.file;
+            let rank = piece.position.rank;
 
             println!("Knight Starting point {}{}",file.to_str(),rank.to_str());
 
             //TODO: Some of these are out of bounds
-            if rank <= &SquareRank::SIXTH && file <= &SquareFile::G{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()+2, file.clone()+1)  {
+            if rank <= SquareRank::SIXTH && file <= SquareFile::G{
+                if let Some(ref mut other) = get_piece_at(board, rank + 2, file + 1)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() + 2});
+                        valid_moves.push(Square{file: file + 1, rank: rank + 2});
                     }
                 }else{
                     //square is empty
-                    valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() + 2});
+                    valid_moves.push(Square{file: file + 1, rank: rank + 2});
                 }
             }
 
-            if rank >= &SquareRank::THIRD && file <= &SquareFile::G {
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()-2, file.clone()+1)  {
+            if rank >= SquareRank::THIRD && file <= SquareFile::G {
+                if let Some(ref mut other) = get_piece_at(board, rank-2, file+1)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() - 2});
+                        valid_moves.push(Square{file: file + 1, rank: rank - 2});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() + 1, rank: rank.clone() - 2});
+                    valid_moves.push(Square{file: file + 1, rank: rank - 2});
                 }
             }
 
-            if file >= &SquareFile::B && rank <= &SquareRank::SIXTH{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()+2, file.clone()-1)  {
+            if file >= SquareFile::B && rank <= SquareRank::SIXTH{
+                if let Some(ref mut other) = get_piece_at(board, rank+2, file-1)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() - 1, rank: rank.clone() + 2});
+                        valid_moves.push(Square{file: file - 1, rank: rank + 2});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() - 1, rank: rank.clone() + 2});
+                    valid_moves.push(Square{file: file - 1, rank: rank + 2});
                 }
             }
 
-            if file >= &SquareFile::A && rank>= &SquareRank::THIRD {
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()-2, file.clone()-1)  {
+            if file >= SquareFile::A && rank>= SquareRank::THIRD {
+                if let Some(ref mut other) = get_piece_at(board, rank-2, file-1)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() - 1, rank: rank.clone() - 2});
+                        valid_moves.push(Square{file: file - 1, rank: rank - 2});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() -1 , rank: rank.clone() - 2});
+                    valid_moves.push(Square{file: file -1 , rank: rank - 2});
                 }
             }
 
-            if file >= &SquareFile::C && rank <= &SquareRank::SIXTH{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()+1, file.clone()-2)  {
+            if file >= SquareFile::C && rank <= SquareRank::SIXTH{
+                if let Some(ref mut other) = get_piece_at(board, rank+1, file-2)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() -2, rank: rank.clone() +1});
+                        valid_moves.push(Square{file: file -2, rank: rank +1});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() - 2, rank: rank.clone() + 1});
+                    valid_moves.push(Square{file: file - 2, rank: rank + 1});
                 }
             }
 
-            if file >= &SquareFile::C && rank   >= &SquareRank::SECOND {
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()-2, file.clone()-2)  {
+            if file >= SquareFile::C && rank   >= SquareRank::SECOND {
+                if let Some(ref mut other) = get_piece_at(board, rank-2, file-2)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() -2 , rank: rank.clone() -1 });
+                        valid_moves.push(Square{file: file -2 , rank: rank -1 });
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() - 2 , rank: rank.clone() - 1});
+                    valid_moves.push(Square{file: file - 2 , rank: rank - 1});
                 }
             }
 
-            if file <= &SquareFile::F && rank <= &SquareRank::SEVENTH{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()+1, file.clone()+2)  {
+            if file <= SquareFile::F && rank <= SquareRank::SEVENTH{
+                if let Some(ref mut other) = get_piece_at(board, rank+1, file+2)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() + 1});
+                        valid_moves.push(Square{file: file + 2, rank: rank + 1});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() + 1});
+                    valid_moves.push(Square{file: file + 2, rank: rank + 1});
                 }
             }
 
-            if rank >= &SquareRank::SECOND && file <= &SquareFile::F{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()-1, file.clone()+2)  {
+            if rank >= SquareRank::SECOND && file <= SquareFile::F{
+                if let Some(ref mut other) = get_piece_at(board, rank-1, file+2)  {
                     if other.color != piece.color{
                         //only add a valid move if the piece in the target square is different clor
                         //TODO: Add code to make a piece targeted/pinned here
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() -1 });
+                        valid_moves.push(Square{file: file + 2, rank: rank -1 });
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() + 2, rank: rank.clone() - 1});
+                    valid_moves.push(Square{file: file + 2, rank: rank - 1});
                 }
             }
         },
 
         PieceType::Bishop  => {
-            let cur_file = &piece.position.file;
-            let cur_rank = &piece.position.rank;
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
             println!("Bishop Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
 
             //TODO: Some of these might be out of bounds. Verify
@@ -624,8 +633,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
            
         },
         PieceType::Rook  => {
-            let cur_file = &piece.position.file ;
-            let cur_rank = &piece.position.rank ;
+            let cur_file = piece.position.file ;
+            let cur_rank = piece.position.rank ;
             let mut rank = cur_rank.to_u8();
             let mut file = cur_file.to_u8();
 
@@ -705,8 +714,8 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
            
         },
         PieceType::Queen  => {
-            let cur_file = &piece.position.file;
-            let cur_rank = &piece.position.rank;
+            let cur_file = piece.position.file;
+            let cur_rank = piece.position.rank;
 
             println!("Queen Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
             //TODO: Some of these might be out of bounds. Verify
@@ -869,80 +878,80 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
         },
         PieceType::King  => {
-            let file = &piece.position.file;
-            let rank = &piece.position.rank;
+            let file = piece.position.file;
+            let rank = piece.position.rank;
 
             println!("King Starting point {}{}",file.to_str(),rank.to_str());
 
             //TODO: Some of these moves are invalid
-            if file <= &SquareFile::G && rank <= &SquareRank::SEVENTH{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone()+1, file.clone()+1){
+            if file <= SquareFile::G && rank <= SquareRank::SEVENTH{
+                if let Some(ref mut other) = get_piece_at(board, rank+1, file+1){
                     if other.color != piece.color{
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() + 1});
+                        valid_moves.push(Square{file: file + 1 , rank: rank + 1});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() + 1});
+                    valid_moves.push(Square{file: file + 1 , rank: rank + 1});
                 }
             }
 
-            if file <= &SquareFile::G {
-                if let Some(ref mut other) = get_piece_at(board, rank.clone(), file.clone()+1){
+            if file <= SquareFile::G {
+                if let Some(ref mut other) = get_piece_at(board, rank, file+1){
                     if other.color != piece.color{
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() });
+                        valid_moves.push(Square{file: file + 1 , rank});
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() + 1 ,rank: rank.clone()});
+                    valid_moves.push(Square{file: file + 1 ,rank});
                 }
             }
 
-            if rank <= &SquareRank::SEVENTH{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone() + 1, file.clone()){
+            if rank <= SquareRank::SEVENTH{
+                if let Some(ref mut other) = get_piece_at(board, rank + 1, file){
                     if other.color != piece.color{
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone(), rank: rank.clone() + 1 });
+                        valid_moves.push(Square{file, rank: rank + 1 });
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() ,rank : rank.clone() + 1});
+                    valid_moves.push(Square{file,rank : rank + 1});
                 }
             }
 
-            if rank >= &SquareRank::SECOND{
-                if file <= &SquareFile::G {
-                    if let Some(ref mut other) = get_piece_at(board, rank.clone() - 1, file.clone()+1){
+            if rank >= SquareRank::SECOND{
+                if file <= SquareFile::G {
+                    if let Some(ref mut other) = get_piece_at(board, rank - 1, file+1){
                         if other.color != piece.color{
                             other.set_targeted(true);
-                            valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() - 1});
+                            valid_moves.push(Square{file: file + 1 , rank: rank - 1});
                         }
                     }else{
-                        valid_moves.push(Square{file: file.clone() + 1 , rank: rank.clone() - 1});
+                        valid_moves.push(Square{file: file + 1 , rank: rank - 1});
                     }
-                //valid_moves.push(Square{file: file.clone(),rank : rank.clone() - 1});
+                //valid_moves.push(Square{file: file,rank : rank - 1});
                 }
             }
-            if file >= &SquareFile::A{
-                if rank <= &SquareRank::SEVENTH{
-                    if let Some(ref mut other) = get_piece_at(board, rank.clone() + 1, file.clone()+1){
+            if file >= SquareFile::A{
+                if rank <= SquareRank::SEVENTH{
+                    if let Some(ref mut other) = get_piece_at(board, rank + 1, file+1){
                         if other.color != piece.color{
                             other.set_targeted(true);
-                            valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() + 1 });
+                            valid_moves.push(Square{file: file - 1 , rank: rank + 1 });
                         }
                     }else{
-                        valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() + 1});
+                        valid_moves.push(Square{file: file - 1 , rank: rank + 1});
                     }
                 }
-                //valid_moves.push(Square{file: file.clone() - 1 ,rank: rank.clone()});
+                //valid_moves.push(Square{file: file - 1 ,rank: rank});
             }
 
-            if rank > &SquareRank::SECOND && file >= &SquareFile::A{
-                if let Some(ref mut other) = get_piece_at(board, rank.clone() - 1, file.clone()-1){
+            if rank > SquareRank::SECOND && file >= SquareFile::A{
+                if let Some(ref mut other) = get_piece_at(board, rank - 1, file-1){
                     if other.color != piece.color{
                         other.set_targeted(true);
-                        valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() - 1 });
+                        valid_moves.push(Square{file: file - 1 , rank: rank - 1 });
                     }
                 }else{
-                    valid_moves.push(Square{file: file.clone() - 1 , rank: rank.clone() - 1});
+                    valid_moves.push(Square{file: file - 1 , rank: rank - 1});
                 }
             }
         },
@@ -993,8 +1002,8 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
                     //piece.update_pos(new_pos); //<- We cant borrank from piece again as it is
                                                 //borranked in the loop. defer position update
                     next_move = Some(new_pos);
-                    piece.position.rank = new_pos.rank.clone();
-                    piece.position.file = new_pos.file.clone();
+                    piece.position.rank = new_pos.rank;
+                    piece.position.file = new_pos.file;
 
                     found_move = true;
 
@@ -1097,11 +1106,11 @@ impl Piece{
     fn new(rank : SquareRank, file : SquareFile, _color : PieceColor, _type : PieceType) -> Self{
         //CUR_PIECE_NUM.fetch_add;
         Self{
-            position : Square::new(rank.clone(),file.clone()),
+            position : Square::new(rank,file),
             color : _color,
             possible_moves : vec![],
             threatened : false,
-            id : ((rank.clone().to_u8())as i64 *100) + (file.clone().to_u8() as i64), //TODO: Implement global UUID
+            id : ((rank.to_u8())as i64 *100) + (file.to_u8() as i64), //TODO: Implement global UUID
             piece_type : _type,
         }
     }
@@ -1140,8 +1149,8 @@ impl Piece{
     //      we assume that at this point the move is valid
     //      despite Pieces owning their possible valid moves
     fn update_pos(&mut self, new_pos : &Square){
-            self.position.file = new_pos.file.clone();
-            self.position.rank = new_pos.rank.clone();
+            self.position.file = new_pos.file;
+            self.position.rank = new_pos.rank;
     }
     fn set_targeted(&mut self, is_targeted: bool){
         self.threatened = is_targeted;
