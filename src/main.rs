@@ -1166,7 +1166,7 @@ impl Board{
 
         }
 
-        fn try_move_piece(&mut self,src_rank:char , src_file:char , dst_rank: char,dst_file : char) -> bool {
+        fn try_move_piece(&mut self, src_rank:char , src_file:char , dst_rank: char,dst_file : char) -> bool {
             if square_contains_piece_square(
                 &self,
                 SquareRank::from_char(src_rank)  ,
@@ -1341,7 +1341,7 @@ fn interactive_mode() {
         let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
         piece.possible_moves.append(&mut moves);
     }
-   
+    let mut move_history = String::new(); 
     'game : loop{
     //Draw board. Refactor?
     let mut cur_pos : Vec<(u8,u8)> = vec![]; 
@@ -1434,6 +1434,8 @@ fn interactive_mode() {
                             //
                             //if we successfully move a piece then we tick a turn
                             chess_board.advance_turn();
+                            move_history.push_str(" ");
+                            move_history.push_str(input_buffer.as_str());
 
                         }else{
                             println!("You selected an empty square, plese select a square with a piece in it");
@@ -1445,15 +1447,21 @@ fn interactive_mode() {
             }
 
             if input_buffer == String::from("X\n"){
-                println!("{}",Board::decode_board_ascii(chess_board.to_string()));
+                println!("expected_in:\n'{}'",move_history);
+                println!("expected_out:\n'{}'",Board::decode_board_ascii(chess_board.to_string()).to_string());
+                if let Err(error) = std::fs::write("test.txt",chess_board.to_string()){
+                    println!("we got error {} when trying to write test",error);
+                }
+                //println!("expected_out:\n'{}'",chess_board.to_string());
             }
     }
 }
 
 
-
 #[cfg(test)]
 mod tests{
+    use std::fs;
+
     use super::*;
     #[test]
     //TODO: verify
@@ -1495,27 +1503,37 @@ mod tests{
     #[test]
     fn pawn_test(){
         let mut chess_board = Board::new();
-        let src_rank = 'e';
-        let src_file = '2';
-        let dst_rank = 'e';
-        let dst_file = '4';
+        let chess_board_clone = chess_board.clone();
+        for piece in &mut chess_board.pieces{
+            let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
+            piece.possible_moves.append(&mut moves);
+        }
+        let expected_input = String::from("Pe2e4"); //TODO parse input string over hardcoding each
+                                                    //char
+        let src_file = 'e';
+        let src_rank = '2';
+        let dst_file = 'e';
+        let dst_rank = '4';
         if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file){
             chess_board.advance_turn();
         }
-            let raw_expected = String::from(
 
-
-                "RNIQKINRPPPP#PPP############P#######P###########PPPP#PPPRNIQKINR"
-                //"RNIQKINR
-                // PPPP#PPP
-                // ########
-                // ####P###
-                // ####P###
-                // ########
-                // PPPP#PPP
-                // RNIQKINR"
-                );
-            //let expected = raw_expected.as.map(|x|  {x});
-            assert_eq!(raw_expected,chess_board.to_string())
+        //TODO: Is there a better way?
+        let mut test_path = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+        test_path.push("src");
+        test_path.push("test_ins");
+        test_path.push("test");
+        test_path.set_extension("txt");
+        let mut raw_expected = fs::read_to_string(test_path).unwrap_or("INVALID_TEST_INPUT".to_string());
+        if raw_expected.ends_with('\n') {
+            raw_expected.pop();
+            if raw_expected.ends_with('\r') {
+                raw_expected.pop();
+            }
+        }
+        //let expected = raw_expected.replace(r"\\", r".");//.replace(r".",r"").replace("$",r"\"); //Goodness
+                                                                                           //why
+        assert_eq!(raw_expected,chess_board.to_string());
     }
 }
+
