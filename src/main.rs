@@ -1,6 +1,5 @@
 use std::{ascii::AsciiExt, io, ops::Add, ops::Sub, env};
 
-
 #[derive(Clone,Debug)]
 enum PieceType{
     None,
@@ -1167,6 +1166,77 @@ impl Board{
 
         }
 
+        fn try_move_piece(&mut self,src_rank:char , src_file:char , dst_rank: char,dst_file : char) -> bool {
+            if square_contains_piece_square(
+                &self,
+                SquareRank::from_char(src_rank)  ,
+                SquareFile::from_char(src_file)  //
+                ){
+
+                //println!("You have selected a valid piece");
+                let piece_id = get_piece_id_at(
+                    &self,
+                    &Square{
+                        rank: SquareRank::from_char(src_rank)  ,
+                        file: SquareFile::from_char(src_file)  //
+                    });
+
+                move_piece(self, piece_id,
+                           &Square{file : SquareFile::from_char(dst_file)  ,
+                           rank: SquareRank::from_char(dst_rank)    
+                           });
+                //
+                //if we successfully move a piece then we tick a turn
+                true
+            }else{
+
+                false
+            }
+    }
+
+    //TODO: Do these make sense being associated with board? Right now I think so
+    //TODO: See if we can do without allocating here
+   fn encode_board_ascii<'a>(board: Vec<ansi_term::ANSIString<'a>>) -> String{
+       let mut encoded = String::new();
+       for term in board{
+           if let Some(term_color) = term.style_ref().foreground{
+                match term_color{
+                    ansi_term::Color::Green =>{
+                        encoded.push('b');
+                    },
+                    ansi_term::Color::White =>{
+                        encoded.push('w');
+                    },
+                    _ =>{/*we only care about green(black) and white colors*/},
+                }
+           }
+           //Now that we have encoded the color, lets encode character
+           encoded.push_str(term.to_ascii_uppercase().as_str());
+       }
+       encoded
+   }
+
+   fn decode_board_ascii<'a>(encoded_board : String) -> ansi_term::ANSIString<'a >{
+       let mut with_color = String::new();
+       let mut next_color = ansi_term::Color::White;
+       for term in encoded_board.chars(){
+           match term{
+               'b' => {
+                next_color = ansi_term::Color::Green;
+               },
+               'w' =>{
+                next_color = ansi_term::Color::White;
+               },
+               _ => {
+                   //TODO: SPEED
+                 with_color.push_str(&next_color.paint(String::from(term)).to_string())
+               },
+           }
+       }
+
+       with_color.into()
+   }
+
 }
 
 #[derive(Clone,Debug)]
@@ -1254,6 +1324,12 @@ impl Piece{
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     interactive_mode();
+    //test_print();
+}
+
+fn test_print(){
+    let mut chess_board = Board::new();
+    print!("{}",chess_board.to_string());
 }
 
 fn interactive_mode() {
@@ -1367,8 +1443,14 @@ fn interactive_mode() {
                     }
 
             }
+
+            if input_buffer == String::from("X\n"){
+                println!("{}",Board::decode_board_ascii(chess_board.to_string()));
+            }
     }
 }
+
+
 
 #[cfg(test)]
 mod tests{
@@ -1409,4 +1491,31 @@ mod tests{
         }
             assert_eq!(expected,chess_board.to_string())
         }
+
+    #[test]
+    fn pawn_test(){
+        let mut chess_board = Board::new();
+        let src_rank = 'e';
+        let src_file = '2';
+        let dst_rank = 'e';
+        let dst_file = '4';
+        if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file){
+            chess_board.advance_turn();
+        }
+            let raw_expected = String::from(
+
+
+                "RNIQKINRPPPP#PPP############P#######P###########PPPP#PPPRNIQKINR"
+                //"RNIQKINR
+                // PPPP#PPP
+                // ########
+                // ####P###
+                // ####P###
+                // ########
+                // PPPP#PPP
+                // RNIQKINR"
+                );
+            //let expected = raw_expected.as.map(|x|  {x});
+            assert_eq!(raw_expected,chess_board.to_string())
+    }
 }
