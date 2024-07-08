@@ -26,7 +26,7 @@ impl PieceType{
 }
 
 fn print_possible_moves(piece :&Piece){
-    println!("The selected Piece is {}({}): dumping moves\n{{",
+   println!("The selected Piece is {}({}): dumping moves\n{{",
 
              piece.id,piece.piece_type.to_str());
     for possible_move in &piece.possible_moves{
@@ -395,7 +395,7 @@ struct Board {
 
 fn get_piece_id_at(b: &Board, new_pos : &Square) -> i64{
     if let Some(piece)  = get_piece_at(b,new_pos.rank, new_pos.file){
-        println!("Selected piece is {}",piece.piece_type.to_str());
+        //println!("Selected piece is {}",piece.piece_type.to_str());
         piece.id
     }else{
         -255 // ERROR value ?
@@ -478,7 +478,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let file = piece.position.file;
             let rank = piece.position.rank;
 
-            println!("Knight Starting point {}{}",file.to_str(),rank.to_str());
+            //println!("Knight Starting point {}{}",file.to_str(),rank.to_str());
 
             //TODO: Some of these are out of bounds
             if rank <= SquareRank::SIXTH && file <= SquareFile::G{
@@ -590,7 +590,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
         PieceType::Bishop  => {
             let cur_file = piece.position.file;
             let cur_rank = piece.position.rank;
-            println!("Bishop Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
+            //println!("Bishop Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
 
             //TODO: Some of these might be out of bounds. Verify
             //for each diagonal
@@ -612,7 +612,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
 
                 rank = rank + 1 ;
                 file = file + 1 ;
-                println!("B1: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
+                //println!("B1: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
 
@@ -635,7 +635,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank + 1;
                 file = file - 1;
 
-                println!("B2: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
+                //println!("B2: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
 
@@ -658,7 +658,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank - 1;
                 file = file + 1;
 
-                println!("B3: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
+                //println!("B3: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
            
@@ -681,7 +681,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                 rank = rank - 1;
                 file = file - 1;
 
-                println!("B4: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
+                //println!("B4: adding {}{}",SquareFile::from(file).to_str(),SquareRank::from(rank).to_str());
                 valid_moves.push(Square{file: SquareFile::from(file) ,rank: SquareRank::from(rank)});
             }
            
@@ -692,7 +692,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let mut rank = cur_rank.to_u8();
             let mut file = cur_file.to_u8();
 
-            println!("Rook Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
+            //println!("Rook Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
            
 
             loop {
@@ -771,7 +771,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let cur_file = piece.position.file;
             let cur_rank = piece.position.rank;
 
-            println!("Queen Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
+            //println!("Queen Starting point {}{}",cur_file.to_str(),cur_rank.to_str());
             //TODO: Some of these might be out of bounds. Verify
             //for each diagonal
                 let mut rank = cur_rank.to_u8() ;
@@ -935,7 +935,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
             let file = piece.position.file;
             let rank = piece.position.rank;
 
-            println!("King Starting point {}{}",file.to_str(),rank.to_str());
+            //println!("King Starting point {}{}",file.to_str(),rank.to_str());
 
             //TODO: Some of these moves are invalid
             if file <= SquareFile::G && rank <= SquareRank::SEVENTH{
@@ -1445,12 +1445,44 @@ fn interactive_mode() {
                     }
 
             }
-
+            
+            //TODO: SPEED
             if input_buffer == String::from("X\n"){
-                println!("expected_in:\n'{}'",move_history);
-                println!("expected_out:\n'{}'",Board::decode_board_ascii(chess_board.to_string()).to_string());
-                if let Err(error) = std::fs::write("test.txt",chess_board.to_string()){
-                    println!("we got error {} when trying to write test",error);
+                let mut output_buffer = String::new();
+                print!("Export file_name?: ");
+                let result = io::stdin().read_line(&mut output_buffer);
+                if output_buffer.ends_with('\n') {
+                    output_buffer.pop();
+                    if output_buffer.ends_with('\r') {
+                        output_buffer.pop();
+                    }
+                }
+
+                let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+                let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+                test_path_out.push("src");
+                test_path_out.push("test_ins");
+                test_path_in.push("src");
+                test_path_in.push("test_ins");
+                let test_out = output_buffer.clone() + "_out";
+                let test_in = output_buffer.clone() + "_in";
+                test_path_out.push(test_out.clone());
+                test_path_in.push(test_in.clone());
+                test_path_out.set_extension("txt");
+                test_path_in.set_extension("txt");
+
+                if !result.is_ok() {
+                    unreachable!("We have to get something from stdin...");
+                }
+                //println!("expected_in:\n'{}'",move_history);
+                //println!("expected_out:\n'{}'",Board::decode_board_ascii(chess_board.to_string()).to_string());
+
+                if let Err(error) = std::fs::write(test_path_out.to_str().unwrap(),chess_board.to_string()){
+                    println!("we got error {} when trying to write {}",error,test_path_out.to_str().unwrap());
+                }
+
+                if let Err(error) = std::fs::write(test_path_in,move_history.clone()){
+                    println!("we got error {} when trying to write {}",error,test_in.clone());
                 }
                 //println!("expected_out:\n'{}'",chess_board.to_string());
             }
@@ -1534,6 +1566,59 @@ mod tests{
         //let expected = raw_expected.replace(r"\\", r".");//.replace(r".",r"").replace("$",r"\"); //Goodness
                                                                                            //why
         assert_eq!(raw_expected,chess_board.to_string());
+    }
+    #[test]
+    fn ruy_lopez(){
+        let mut chess_board = Board::new();
+        let chess_board_clone = chess_board.clone();
+        for piece in &mut chess_board.pieces{
+            let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
+            piece.possible_moves.append(&mut moves);
+        }
+
+        let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+        test_path_in.push("src");
+        test_path_in.push("test_ins");
+        test_path_in.push("RuyLopez_in");
+        test_path_in.set_extension("txt");
+        let expected_input = fs::read_to_string(test_path_in).unwrap_or("INVALID_TEST_INPUT".to_string());
+        for move_in in expected_input.lines(){
+            if move_in.len() < 5 {
+                break;
+            }
+            //TODO: Figure out why the first character is blank and everything is offset by 1
+            let piece    = move_in.chars().nth(1).expect("Each move to have exactly 6 chars");
+            let src_file = move_in.chars().nth(2).expect("Each move to have exactly 6 chars");
+            let src_rank = move_in.chars().nth(3).expect("Each move to have exactly 6 chars");
+            let dst_file = move_in.chars().nth(4).expect("Each move to have exactly 6 chars");
+            let dst_rank = move_in.chars().nth(5).expect("Each move to have exactly 6 chars");
+
+            //print!("P: {} | sf: {} | sr: {} | df: {} | dr: {}",piece,src_file,src_rank,dst_file,dst_rank);
+            print!("P: {} | sf: {} | sr: {} | df: {} | dr: {}",piece,src_file,src_rank,dst_file,dst_rank);
+
+            if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file){
+                chess_board.advance_turn();
+            }
+            
+        }
+
+        let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+        test_path_out.push("src");
+        test_path_out.push("test_ins");
+        test_path_out.push("RuyLopez_out");
+        test_path_out.set_extension("txt");
+        let expected_output = fs::read_to_string(test_path_out);
+
+        let mut expected = expected_output.unwrap_or("INVALID_TEST_INPUT".to_string());
+        if expected.ends_with('\n') {
+            expected.pop();
+            if expected.ends_with('\r') {
+                expected.pop();
+            }
+        }
+
+        assert_eq!(expected,chess_board.to_string());
+
     }
 }
 
