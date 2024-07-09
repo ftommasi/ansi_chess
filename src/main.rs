@@ -427,17 +427,17 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
                     if piece.position.file < SquareFile::G { 
-                        if let Some(target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
-                            println!("While calculatimg moves a black pawn({:?}{:?})can capture on {:?}{:?}",file,rank,piece.position.file+1,piece.position.rank-1);
-                            if piece.color == PieceColor::White{
+                        if let Some(ref mut target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
+                            if target_piece.color == PieceColor::White{
+                                target_piece.set_targeted(true);
                                 valid_moves.push(Square{rank: target_piece.position.rank-1,file: target_piece.position.file+1});
                             }
                         }
                     }
                     if piece.position.file >= SquareFile::B { 
-                        if let Some(target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
-                            println!("While calculatimg moves a black pawn({:?}{:?})can capture on {:?}{:?}",file,rank,piece.position.file-1,piece.position.rank-1);
-                            if piece.color == PieceColor::White{
+                        if let Some(ref mut target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
+                            if target_piece.color == PieceColor::White{
+                                target_piece.set_targeted(true);
                                 valid_moves.push(Square{rank: target_piece.position.rank-1,file: target_piece.position.file+1});
                             }
                             //valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1}); // does this need to be here??
@@ -448,7 +448,7 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     if piece.position.rank == SquareRank::SECOND{ //Pawn has not moved
                         if !square_contains_piece_square(board,piece.position.rank+2,piece.position.file){
                             valid_moves.push(Square{rank: piece.position.rank+2,file:piece.position.file});
-                        }
+                            }
                     }
 
                     if !square_contains_piece_square(board,piece.position.rank+1,piece.position.file){
@@ -458,18 +458,18 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
                     if piece.position.file < SquareFile::G { 
-                        if let Some(target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
-                            println!("[right]While calculatimg moves a white pawn({:?}{:?})can capture on {:?}{:?}",file,rank,target_piece.position.file,target_piece.position.rank);
-                            if piece.color != PieceColor::White{
+                        if let Some(ref mut target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
+                            if target_piece.color != PieceColor::White{
+                                target_piece.set_targeted(true);
                                 valid_moves.push(Square{rank: target_piece.position.rank+1,file: target_piece.position.file+1});
                             }
                         }
                     }
 
                     if piece.position.file >= SquareFile::B { 
-                        if let Some(target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
-                            println!("[left]While calculatimg moves a white pawn({:?}{:?})can capture on {:?}{:?}",file,rank,target_piece.position.file,target_piece.position.rank);
-                            if piece.color != PieceColor::White{
+                        if let Some(ref mut target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
+                            if target_piece.color != PieceColor::White{
+                                target_piece.set_targeted(true);
                                 valid_moves.push(Square{rank: target_piece.position.rank,file: target_piece.position.file});
                             }
                             //valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1}); // I think this is extra
@@ -1052,9 +1052,9 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
     }
    
     let mut next_move : Option<&Square> = None;
+    let mut found_move = false;
     match selected_piece {
         Some(ref mut piece) => {
-            let mut found_move = false;
             for valid_move in piece.possible_moves.as_slice(){
                 if valid_move.eq(new_pos) {
                     //piece.update_pos(new_pos); //<- We cant borrank from piece again as it is
@@ -1062,6 +1062,8 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
                     next_move = Some(new_pos);
                     piece.position.rank = new_pos.rank;
                     piece.position.file = new_pos.file;
+
+
 
                     found_move = true;
 
@@ -1073,9 +1075,6 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
                 print_possible_moves(piece);
             }
 
-            // reclaculate moves here. Calling another self, mut function is not working and this
-            // is probably the only place where it is needed
-            //piece.possible_moves = vec![Square{rank : (piece.position.rank + 1)%8,file : (piece.position.file + 1)%8 }];
            
         },
         None => {
@@ -1084,15 +1083,21 @@ fn move_piece(b: &mut Board, piece_id : i64, new_pos : &Square){
         }
     }
 
+                    if found_move{
     match next_move {
         Some(_move_) => {
-            //todo!("recalculate_valid_moves is not implemented yet");
+           //check for capture
+                    if let Some(target_piece) = get_piece_at(b, new_pos.rank, new_pos.file) {
+                         //By contract we know that if a valid move is a capture that the piece colors are opposite. See get_valid_moves_for_piece
+                         //b.delete_piece(target_piece.id); //TODO: Currently this deletes a piece right after moving it...
+                    }
         },
         None => {
             println!("Illegal move");
             return;
         }
     }
+}
 
                 //for valid_move in &mut piece.possible_moves{
                 //    //if we have a valid move. move the piece
@@ -1196,7 +1201,23 @@ impl Board{
 
                 false
             }
-    }
+        
+        }
+    
+        fn delete_piece(&mut self, piece_id : i64) {
+            let mut selected_index : usize = 0;
+            let mut found = false;
+            for (index,piece) in self.pieces.iter().enumerate(){
+               if piece.id == piece_id{
+                selected_index = index ;
+                found = true;
+               } 
+            }
+
+            if found{
+                self.pieces.remove(selected_index);
+            }
+        }
 
     //TODO: Do these make sense being associated with board? Right now I think so
     //TODO: See if we can do without allocating here
@@ -1446,6 +1467,7 @@ fn interactive_mode() {
                                 chess_board_clone.pieces = chess_board.pieces.clone();
                             for piece in &mut chess_board.pieces{
                                 piece.possible_moves.clear();
+                                piece.set_targeted(false); //reset targeted status, it will get updated when computing valid moves
                                 let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
                                 piece.possible_moves.append(&mut moves);
                             }
