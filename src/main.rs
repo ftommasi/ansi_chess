@@ -427,18 +427,20 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
                     if piece.position.file < SquareFile::G { 
-                        if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
+                        if let Some(target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file+1){
+                            println!("While calculatimg moves a black pawn({:?}{:?})can capture on {:?}{:?}",file,rank,piece.position.file+1,piece.position.rank-1);
                             if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
+                                valid_moves.push(Square{rank: target_piece.position.rank-1,file: target_piece.position.file+1});
                             }
                         }
                     }
                     if piece.position.file >= SquareFile::B { 
-                        if let Some(piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
+                        if let Some(target_piece) = get_piece_at(board,piece.position.rank-1,piece.position.file-1){
+                            println!("While calculatimg moves a black pawn({:?}{:?})can capture on {:?}{:?}",file,rank,piece.position.file-1,piece.position.rank-1);
                             if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file+1});
+                                valid_moves.push(Square{rank: target_piece.position.rank-1,file: target_piece.position.file+1});
                             }
-                            valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1});
+                            //valid_moves.push(Square{rank: piece.position.rank-1,file:piece.position.file-1}); // does this need to be here??
                         }
                     }
                 },
@@ -456,17 +458,19 @@ fn get_valid_moves_for_piece(piece : &Piece, board: &Board) -> Vec<Square> {
                     //Check for capturing pieces
                     //TODO: Add enpassant logic
                     if piece.position.file < SquareFile::G { 
-                        if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
-                            if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file+1});
+                        if let Some(target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file+1){
+                            println!("[right]While calculatimg moves a white pawn({:?}{:?})can capture on {:?}{:?}",file,rank,target_piece.position.file,target_piece.position.rank);
+                            if piece.color != PieceColor::White{
+                                valid_moves.push(Square{rank: target_piece.position.rank+1,file: target_piece.position.file+1});
                             }
                         }
                     }
 
                     if piece.position.file >= SquareFile::B { 
-                        if let Some(piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
-                            if piece.color == PieceColor::White{
-                                valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1});
+                        if let Some(target_piece) = get_piece_at(board,piece.position.rank+1,piece.position.file-1){
+                            println!("[left]While calculatimg moves a white pawn({:?}{:?})can capture on {:?}{:?}",file,rank,target_piece.position.file,target_piece.position.rank);
+                            if piece.color != PieceColor::White{
+                                valid_moves.push(Square{rank: target_piece.position.rank,file: target_piece.position.file});
                             }
                             //valid_moves.push(Square{rank: piece.position.rank+1,file:piece.position.file-1}); // I think this is extra
                         }
@@ -1336,7 +1340,7 @@ fn interactive_mode() {
     let mut chess_board = Board::new();
     //init board
     //TODO: I;m sure there is a better way to do this, doing it the quick and dirty way for now
-    let chess_board_clone = chess_board.clone();
+    let mut chess_board_clone = chess_board.clone();
     for piece in &mut chess_board.pieces{
         let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
         piece.possible_moves.append(&mut moves);
@@ -1436,6 +1440,15 @@ fn interactive_mode() {
                             chess_board.advance_turn();
                             move_history.push_str(" ");
                             move_history.push_str(input_buffer.as_str());
+                            
+                            //After we move a piece recalculate possible moves
+                                //TODO: Fix this hack with the chess_board_clone
+                                chess_board_clone.pieces = chess_board.pieces.clone();
+                            for piece in &mut chess_board.pieces{
+                                piece.possible_moves.clear();
+                                let mut moves = get_valid_moves_for_piece(&piece.clone(),&chess_board_clone);
+                                piece.possible_moves.append(&mut moves);
+                            }
 
                         }else{
                             println!("You selected an empty square, plese select a square with a piece in it");
