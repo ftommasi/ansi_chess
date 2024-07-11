@@ -7,3 +7,14 @@ edition = "2021"
 
 [dependencies]
 ansi_term = "0.12"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+
+
+[[bin]]
+name = "client"
+path = "src/main.rs"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
