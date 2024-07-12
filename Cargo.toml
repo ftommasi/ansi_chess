@@ -9,15 +9,20 @@ edition = "2021"
 ansi_term = "0.12"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
+viuwa = "0.0.50"
 
 [lib]
 name = "ansi_chess"
 path = "src/ansi_chess.rs"
 
 [[bin]]
-name = "client"
+name = "local"
 path = "src/main.rs"
 
 [[bin]]
 name = "server"
 path = "src/server.rs"
+
+[[bin]]
+name = "client"
+path = "src/client.rs"

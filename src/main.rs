@@ -2,16 +2,22 @@ use std::{ascii::AsciiExt, env, io, ops::Add, ops::Sub};
 
 mod ansi_chess;
 
-
-fn main() {
+pub fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    interactive_mode();
-    //test_print();
+    //interactive_mode();
+    test_print();
 }
 
 fn test_print() {
     let mut chess_board = ansi_chess::Board::new();
-    print!("{}", chess_board.to_string());
+    //print!("{}", chess_board.to_string());
+    //from viuwa main. How do we abstract this into a function call?
+    //let orig = {
+    //    image::io::Reader::open(&config.image)?
+    //        .with_guessed_format()?
+    //        .decode()
+    //        .context("Failed to load image, the file extension may be incorrect")?
+    //};
 }
 
 fn interactive_mode() {
