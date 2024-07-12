@@ -10,6 +10,9 @@ ansi_term = "0.12"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = "0.1"
 
+[lib]
+name = "ansi_chess"
+path = "src/ansi_chess.rs"
 
 [[bin]]
 name = "client"
