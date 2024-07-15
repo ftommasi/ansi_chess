@@ -1254,8 +1254,16 @@ pub fn get_piece_at(b: &Board, rank: SquareRank, file: SquareFile) -> Option<Pie
     None
 }
 
+#[derive(Debug)]
+pub enum MoveError{
+    InvalidMove,
+    IllegalMove,
+    NoPiece,
+
+}
+
 //Should this rturn bool or Result or something?
-pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) {
+pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) -> Result<(),MoveError>{
     let mut selected_piece: Option<&mut Piece> = None;
     for piece in &mut b.pieces {
         if piece.id == piece_id {
@@ -1286,6 +1294,7 @@ pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) {
             if !found_move {
                 println!("selected move not in list of valid moves for selected piece");
                 print_possible_moves(piece);
+                return Err(MoveError::InvalidMove);
             }
         }
         None => {
@@ -1296,13 +1305,15 @@ pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) {
 
     if found_move {
         match next_move {
-            Some(_move_) => {}
+            Some(_move_) => {},
             None => {
                 println!("Illegal move");
-                return;
+                return Err(MoveError::IllegalMove);
             }
         }
     }
+
+    Ok(())
 
     //for valid_move in &mut piece.possible_moves{
     //    //if we have a valid move. move the piece
@@ -1388,13 +1399,13 @@ impl Board {
         BoardString
     }
 
-    pub fn try_move_piece(
+    pub fn try_move_piece (
         &mut self,
         src_rank: char,
         src_file: char,
         dst_rank: char,
         dst_file: char,
-    ) -> bool {
+    ) -> Result<(),MoveError> {
         if square_contains_piece_square(
             &self,
             SquareRank::from_char(src_rank),
@@ -1416,12 +1427,12 @@ impl Board {
                     file: SquareFile::from_char(dst_file),
                     rank: SquareRank::from_char(dst_rank),
                 },
-            );
+            )?;
             //
             //if we successfully move a piece then we tick a turn
-            true
+           Ok(()) 
         } else {
-            false
+            Err(MoveError::NoPiece)
         }
     }
 
@@ -1716,7 +1727,7 @@ mod tests {
         let src_rank = '2';
         let dst_file = 'e';
         let dst_rank = '4';
-        if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
+        if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
             chess_board.advance_turn();
         }
 
@@ -1786,7 +1797,7 @@ mod tests {
                 piece, src_file, src_rank, dst_file, dst_rank
             );
 
-            if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
+            if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
                 chess_board.advance_turn();
             }
         }
@@ -1855,7 +1866,7 @@ mod tests {
                 piece, src_file, src_rank, dst_file, dst_rank
             );
 
-            if chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
+            if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
                 chess_board.advance_turn();
             }
         }

@@ -4,8 +4,8 @@ mod ansi_chess;
 
 pub fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    //interactive_mode();
-    test_print();
+    interactive_mode();
+    //test_print();
 }
 
 fn test_print() {
@@ -193,14 +193,16 @@ fn interactive_mode() {
                         //By contract we know that if a valid move is a capture that the piece colors are opposite. See get_valid_moves_for_piece
                         chess_board.delete_piece(target_piece.id); //TODO: Currently this deletes a piece right after moving it...
                     }
-                    ansi_chess::move_piece(
+                    if let Err(e) = ansi_chess::move_piece(
                         &mut chess_board,
                         piece_id,
                         &ansi_chess::Square {
                             file: ansi_chess::SquareFile::from_char(dst_file),
                             rank: ansi_chess::SquareRank::from_char(dst_rank),
                         },
-                    );
+                    ){
+                        println!("Encountered '{:?}' error while moving piece",e);
+                    }
                     //
                     //if we successfully move a piece then we tick a turn
                     chess_board.advance_turn();
