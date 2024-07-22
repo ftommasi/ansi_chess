@@ -21,11 +21,14 @@ impl GameState {
 
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {
-    let game_state_ref = Arc::new(Mutex::new(GameState::new()));
-    let server_listener = TcpListener::bind(&format!("127.0.0.1:{}", 8080)).await?;
-    loop{
-        server_listener.await;
-    }
+    //let game_state_ref = Arc::new(Mutex::new(GameState::new()));
+    //let server_listener = TcpListener::bind(&format!("127.0.0.1:{}", 8080)).await?;
+
+    //let black_game_state_Ref = Arc::clone(&game_state_ref);
+    //let white_game_state_Ref = Arc::clone(&game_state_ref);
+
+    //let white_listener = TcpListener::bind(&format!("127.0.0.1:{}", 8080)).await?;
+    //let black_listener = TcpListener::bind(&format!("127.0.0.1:{}", 8081)).await?;
 
     Ok(())
 }
