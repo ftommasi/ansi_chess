@@ -4,8 +4,13 @@ mod ansi_chess;
 
 pub fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    //interactive_mode();
-    test_print();
+    interactive_mode();
+    //test_print();
+}
+
+
+fn clear_screen(){
+    print!("\x1B[2J\x1B[1;1H");
 }
 
 fn test_print() {
@@ -30,6 +35,7 @@ fn interactive_mode() {
         piece.possible_moves.append(&mut moves);
     }
     let mut move_history = String::new();
+    clear_screen();
     'game: loop {
         //Draw board. Refactor?
         let mut cur_pos: Vec<(u8, u8)> = vec![];
@@ -217,6 +223,7 @@ fn interactive_mode() {
                             ansi_chess::get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
                         piece.possible_moves.append(&mut moves);
                     }
+                    clear_screen();
                 } else {
                     println!(
                         "You selected an empty square, plese select a square with a piece in it"
