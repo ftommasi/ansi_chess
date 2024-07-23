@@ -1885,7 +1885,6 @@ mod tests {
                 expected.pop();
             }
         }
-
         assert_eq!(expected, chess_board.to_string());
     }
 }

@@ -13,6 +13,26 @@ fn clear_screen(){
     print!("\x1B[2J\x1B[1;1H");
 }
 
+fn validate_input(src_rank: char, src_file: char, dst_rank: char, dst_file: char) -> bool{
+    match src_rank{
+        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' => {},
+        _ => return false
+    }
+    match src_file{
+        'A'|'a' | 'B' | 'b' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G' | 'h' | 'H' => {},
+        _ => return false
+    }
+    match dst_rank{
+        '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' => {},
+        _ => return false
+    }
+    match dst_file{
+        'A'|'a' | 'B' | 'b' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G' | 'h' | 'H' => {},
+        _ => return false
+    }
+    true
+}
+
 fn test_print() {
     let mut chess_board = ansi_chess::Board::new();
     //print!("{}", chess_board.to_string());
@@ -176,6 +196,8 @@ fn interactive_mode() {
                     .nth(1)
                     .expect("des square to have .nth(4)");
 
+                if validate_input(src_rank,src_file,dst_rank,dst_file){
+
                 if ansi_chess::square_contains_piece_square(
                     &chess_board,
                     ansi_chess::SquareRank::from_char(src_rank),
@@ -230,6 +252,9 @@ fn interactive_mode() {
                     println!(
                         "You selected an empty square, plese select a square with a piece in it"
                     );
+                }
+                }else{
+                    println!("Invalid values for src/dst rank/file!");
                 }
             } else {
                 println!("invalid input lneght {}", input_buffer.len());
