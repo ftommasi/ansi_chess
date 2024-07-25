@@ -157,6 +157,13 @@ impl Sub<u8> for SquareFile {
     type Output = Self;
 }
 
+enum SquareError{
+    InvalidFile,
+    InvalidRank,
+}
+
+type SquareResult = Result<(),SquareError>;
+
 impl SquareFile {
     pub fn from(val: u8) -> Self {
         match val {
@@ -183,6 +190,34 @@ impl SquareFile {
             'G' | 'g' => Self::G,
             'H' | 'h' => Self::H,
             _ => unreachable!("{} exceeds File value!", val),
+        }
+    }
+
+    pub fn from_checked(val: u8) -> Option<Self> {
+        match val {
+            1 => Some(Self::A),
+            2 => Some(Self::B),
+            3 => Some(Self::C),
+            4 => Some(Self::D),
+            5 => Some(Self::E),
+            6 => Some(Self::F),
+            7 => Some(Self::G),
+            8 => Some(Self::H),
+            //8 => Self::H, //TODO: This weird little hack...
+            _ => None,
+        }
+    }
+    pub fn from_char_checked(val: char) -> Option<Self> {
+        match val {
+            'A' | 'a' => Some(Self::A),
+            'B' | 'b' => Some(Self::B),
+            'C' | 'c' => Some(Self::C),
+            'D' | 'd' => Some(Self::D),
+            'E' | 'e' => Some(Self::E),
+            'F' | 'f' => Some(Self::F),
+            'G' | 'g' => Some(Self::G),
+            'H' | 'h' => Some(Self::H),
+            _ => None,
         }
     }
     pub fn to_str(&self) -> &str {
@@ -364,12 +399,12 @@ pub struct Board {
     pub is_black_king_checked: bool,
 }
 
-pub fn get_piece_id_at(b: &Board, new_pos: &Square) -> i64 {
+pub fn get_piece_id_at(b: &Board, new_pos: &Square) -> Option<i64> {
     if let Some(piece) = get_piece_at(b, new_pos.rank, new_pos.file) {
         //println!("Selected piece is {}",piece.piece_type.to_str());
-        piece.id
+        Some(piece.id)
     } else {
-        -255 // ERROR value ?
+        None
     }
 }
 
@@ -1265,6 +1300,16 @@ pub enum MoveError{
 //Should this rturn bool or Result or something?
 pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) -> Result<(),MoveError>{
     let mut selected_piece: Option<&mut Piece> = None;
+    let mut target = 0;
+
+                    //before we move piece lets remove
+                    if let Some(target_piece) = get_piece_at(
+                        &b,
+                        new_pos.rank,
+                        new_pos.file,
+                        ){
+                        target = target_piece.id;
+                    }
     for piece in &mut b.pieces {
         if piece.id == piece_id {
             selected_piece = Some(piece);
@@ -1287,7 +1332,10 @@ pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) -> Result<(),M
                     piece.position.rank = new_pos.rank;
                     piece.position.file = new_pos.file;
 
+
+
                     found_move = true;
+
                 }
             }
 
@@ -1299,18 +1347,25 @@ pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) -> Result<(),M
         }
         None => {
             println!("Could not resolve Piece_id {}", piece_id);
+            return Err(MoveError::NoPiece);
             //return;
         }
     }
 
     if found_move {
         match next_move {
-            Some(_move_) => {},
+            Some(_move_) => {
+            },
             None => {
                 println!("Illegal move");
                 return Err(MoveError::IllegalMove);
             }
         }
+    }
+    if target > 0 {
+        //TODO: This needs to be refactored into lib
+        //By contract we know that if a valid move is a capture that the piece colors are opposite. See get_valid_moves_for_piece
+        b.delete_piece(target); //TODO: Currently this deletes a piece right after moving it...
     }
 
     Ok(())
@@ -1412,13 +1467,13 @@ impl Board {
             SquareFile::from_char(src_file), //
         ) {
             //println!("You have selected a valid piece");
-            let piece_id = get_piece_id_at(
+            if let Some(piece_id) = get_piece_id_at(
                 &self,
                 &Square {
                     rank: SquareRank::from_char(src_rank),
                     file: SquareFile::from_char(src_file), //
                 },
-            );
+            ){
 
             move_piece(
                 self,
@@ -1430,7 +1485,10 @@ impl Board {
             )?;
             //
             //if we successfully move a piece then we tick a turn
-           Ok(()) 
+           Ok(()) }
+            else{
+            Err(MoveError::NoPiece)
+            }
         } else {
             Err(MoveError::NoPiece)
         }

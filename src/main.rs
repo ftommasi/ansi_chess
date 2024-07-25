@@ -204,23 +204,14 @@ fn interactive_mode() {
                     ansi_chess::SquareFile::from_char(src_file), //
                 ) {
                     //println!("You have selected a valid piece");
-                    let piece_id = ansi_chess::get_piece_id_at(
+                    if let Some(piece_id)= ansi_chess::get_piece_id_at(
                         &chess_board,
                         &ansi_chess::Square {
                             rank: ansi_chess::SquareRank::from_char(src_rank),
                             file: ansi_chess::SquareFile::from_char(src_file), //
                         },
-                    );
+                    ){
 
-                    //before we move piece lets remove
-                    if let Some(target_piece) = ansi_chess::get_piece_at(
-                        &chess_board,
-                        ansi_chess::SquareRank::from_char(dst_rank),
-                        ansi_chess::SquareFile::from_char(dst_file),
-                    ) {
-                        //By contract we know that if a valid move is a capture that the piece colors are opposite. See get_valid_moves_for_piece
-                        chess_board.delete_piece(target_piece.id); //TODO: Currently this deletes a piece right after moving it...
-                    }
                     if let Err(e) = ansi_chess::move_piece(
                         &mut chess_board,
                         piece_id,
@@ -248,6 +239,9 @@ fn interactive_mode() {
                         piece.possible_moves.append(&mut moves);
                     }
                     clear_screen();
+                    }else{
+                        println!("Invalid square selected");
+                    }
                 } else {
                     println!(
                         "You selected an empty square, plese select a square with a piece in it"
