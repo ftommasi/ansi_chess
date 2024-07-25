@@ -4,7 +4,8 @@ mod ansi_chess;
 
 pub fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    interactive_mode();
+    //interactive_mode();
+    ansi_chess::auto();
     //test_print();
 }
 

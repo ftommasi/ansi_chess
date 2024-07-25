@@ -1,4 +1,4 @@
-use std::{ascii::AsciiExt, env, io, ops::Add, ops::Sub};
+use std::{ascii::AsciiExt, env, io, ops::Add, ops::Sub,fs};
 
 #[derive(Clone, Debug)]
 pub enum PieceType {
@@ -748,6 +748,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                         });
                         //TODO: moving this break, breaks RuyLopez test, but I think thtis is a bug
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
 
                 }
@@ -1322,6 +1329,7 @@ pub fn move_piece(b: &mut Board, piece_id: i64, new_pos: &Square) -> Result<(),M
 
     match selected_piece {
         Some(ref mut piece) => {
+            print_possible_moves(piece);
             for valid_move in piece.possible_moves.as_slice() {
                 if valid_move.eq(new_pos) {
                     //piece.update_pos(new_pos); //<- We cant borrank from piece again as it is
@@ -1551,6 +1559,9 @@ impl Board {
 
         with_color.into()
     }
+
+    pub fn paint_board(){
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -1724,6 +1735,123 @@ impl Piece {
     }
 }
 
+pub fn auto(){
+        let mut chess_board = Board::new();
+        let chess_board_clone = chess_board.clone();
+        for piece in &mut chess_board.pieces {
+            let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
+            piece.possible_moves.append(&mut moves);
+        }
+
+        let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+        test_path_in.push("src");
+        test_path_in.push("test_ins");
+        test_path_in.push("RuyLopez2_in");
+        test_path_in.set_extension("txt");
+        let expected_input =
+            fs::read_to_string(test_path_in).unwrap_or("INVALID_TEST_INPUT".to_string());
+        for move_in in expected_input.lines() {
+            if move_in.len() < 5 {
+                break;
+            }
+            //TODO: Figure out why the first character is blank and everything is offset by 1
+            let piece = move_in
+                .chars()
+                .nth(1)
+                .expect("Each move to have exactly 6 chars");
+            let src_file = move_in
+                .chars()
+                .nth(2)
+                .expect("Each move to have exactly 6 chars");
+            let src_rank = move_in
+                .chars()
+                .nth(3)
+                .expect("Each move to have exactly 6 chars");
+            let dst_file = move_in
+                .chars()
+                .nth(4)
+                .expect("Each move to have exactly 6 chars");
+            let dst_rank = move_in
+                .chars()
+                .nth(5)
+                .expect("Each move to have exactly 6 chars");
+
+            //print!("P: {} | sf: {} | sr: {} | df: {} | dr: {}",piece,src_file,src_rank,dst_file,dst_rank);
+            print!(
+                "P: {} | sf: {} | sr: {} | df: {} | dr: {}",
+                piece, src_file, src_rank, dst_file, dst_rank
+            );
+
+            if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
+                chess_board.advance_turn();
+            }
+        }
+
+        let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
+        test_path_out.push("src");
+        test_path_out.push("test_ins");
+        test_path_out.push("RuyLopez2_out");
+        test_path_out.set_extension("txt");
+        let expected_output = fs::read_to_string(test_path_out);
+
+        let mut expected = expected_output.unwrap_or("INVALID_TEST_INPUT".to_string());
+        if expected.ends_with('\n') {
+            expected.pop();
+            if expected.ends_with('\r') {
+                expected.pop();
+            }
+        }
+
+        //print board
+        let mut cur_pos: Vec<(u8, u8)> = vec![];
+        for (idx_r, rank) in (1..9).rev().enumerate() {
+            //POV: Playing as white pieces
+            //for (idx_r,rank) in (1..9).enumerate(){ //POV: Playing as black pieces
+            print!("{}. ", ansi_term::Color::Purple.paint((rank).to_string()));
+            for (idx_c, file) in (1..9).enumerate() {
+                //let square = chess_board.get(idx_r).expect("idx_r to be in bounds").get(idx_c).expect("idx_c to be in bounds");
+
+                let mut square_color = ansi_term::Color::White;
+                if idx_r % 2 == 0 {
+                    if idx_c % 2 == 0 {
+                        square_color = ansi_term::Color::White;
+                    } else {
+                        square_color = ansi_term::Color::Green;
+                    }
+                } else if idx_c % 2 == 0 {
+                    square_color = ansi_term::Color::Green;
+                } else {
+                    square_color = ansi_term::Color::White;
+                }
+                if square_contains_piece_square(
+                    &chess_board,
+                    SquareRank::from(rank),
+                    SquareFile::from(file),
+                ) {
+                    let cur_piece = get_piece_at(
+                        &chess_board,
+                        SquareRank::from(rank),
+                        SquareFile::from(file),
+                    )
+                    .expect("square_contains_piece_square to work as intended");
+                    cur_pos.push((file, rank));
+                    paint_piece(&cur_piece);
+                } else {
+                    print!("{}", square_color.paint("#"));
+                }
+            }
+            println!();
+        }
+        print!("   "); // padding
+        for (_, file) in (1..9).enumerate() {
+            print!(
+                "{}",
+                ansi_term::Color::Purple.paint(SquareFile::from(file).to_str())
+            );
+        }
+        println!();
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs;
@@ -1734,6 +1862,7 @@ mod tests {
     fn board_as_string_initial() {
         let mut expected = String::new();
         let chess_board = Board::new();
+
         for (idx_r, rank) in (1..9).rev().enumerate() {
             //POV: Playing as white pieces
             for (idx_c, file) in (1..9).enumerate() {
@@ -1810,8 +1939,9 @@ mod tests {
     #[test]
     fn ruy_lopez() {
         let mut chess_board = Board::new();
-        let chess_board_clone = chess_board.clone();
+        let mut chess_board_clone = chess_board.clone();
         for piece in &mut chess_board.pieces {
+            piece.possible_moves.clear();
             let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
             piece.possible_moves.append(&mut moves);
         }
@@ -1819,7 +1949,7 @@ mod tests {
         let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_in.push("src");
         test_path_in.push("test_ins");
-        test_path_in.push("RuyLopez_in");
+        test_path_in.push("RuyLopez2_in");
         test_path_in.set_extension("txt");
         let expected_input =
             fs::read_to_string(test_path_in).unwrap_or("INVALID_TEST_INPUT".to_string());
@@ -1855,6 +1985,13 @@ mod tests {
                 piece, src_file, src_rank, dst_file, dst_rank
             );
 
+            chess_board_clone = chess_board.clone();
+            for piece in &mut chess_board.pieces {
+                piece.possible_moves.clear();
+                let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
+                piece.possible_moves.append(&mut moves);
+            }
+
             if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
                 chess_board.advance_turn();
             }
@@ -1863,7 +2000,7 @@ mod tests {
         let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_out.push("src");
         test_path_out.push("test_ins");
-        test_path_out.push("RuyLopez_out");
+        test_path_out.push("RuyLopez2_out");
         test_path_out.set_extension("txt");
         let expected_output = fs::read_to_string(test_path_out);
 
@@ -1943,6 +2080,8 @@ mod tests {
                 expected.pop();
             }
         }
+
+
         assert_eq!(expected, chess_board.to_string());
     }
 }
