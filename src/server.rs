@@ -1,5 +1,4 @@
 use std::{
-    io::Result,
     sync::{Arc, Mutex},
 };
 use tokio::{net::TcpListener, net::TcpStream, select};

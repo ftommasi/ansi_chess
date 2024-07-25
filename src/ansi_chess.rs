@@ -718,7 +718,6 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             file: SquareFile::from(file),
                             rank: SquareRank::from(rank),
                         });
-                        break;
                     }
                 }
 
@@ -747,10 +746,11 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             file: SquareFile::from(file),
                             rank: SquareRank::from(rank),
                         });
+                        //TODO: moving this break, breaks RuyLopez test, but I think thtis is a bug
                         break;
                     }
-                }
 
+                }
                 rank = rank + 1;
                 file = file - 1;
 
