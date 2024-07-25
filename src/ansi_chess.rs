@@ -2043,10 +2043,14 @@ mod tests {
     }
     #[test]
     fn ruy_lopez() {
+        run_test_input("RuyLopez");
+    }
+
+    #[test]
+    fn pawn_capture() {
         let mut chess_board = Board::new();
         let mut chess_board_clone = chess_board.clone();
         for piece in &mut chess_board.pieces {
-            piece.possible_moves.clear();
             let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
             piece.possible_moves.append(&mut moves);
         }
@@ -2054,7 +2058,7 @@ mod tests {
         let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_in.push("src");
         test_path_in.push("test_ins");
-        test_path_in.push("RuyLopez2_in");
+        test_path_in.push("Capture_pawn_in");
         test_path_in.set_extension("txt");
         let expected_input =
             fs::read_to_string(test_path_in).unwrap_or("INVALID_TEST_INPUT".to_string());
@@ -2105,7 +2109,7 @@ mod tests {
         let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_out.push("src");
         test_path_out.push("test_ins");
-        test_path_out.push("RuyLopez2_out");
+        test_path_out.push("Capture_pawn_out");
         test_path_out.set_extension("txt");
         let expected_output = fs::read_to_string(test_path_out);
 
@@ -2117,11 +2121,13 @@ mod tests {
             }
         }
 
+
         assert_eq!(expected, chess_board.to_string());
     }
-    fn pawn_capture() {
+
+    fn run_test_input(test_name : &str){
         let mut chess_board = Board::new();
-        let chess_board_clone = chess_board.clone();
+        let mut chess_board_clone = chess_board.clone();
         for piece in &mut chess_board.pieces {
             let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
             piece.possible_moves.append(&mut moves);
@@ -2130,7 +2136,7 @@ mod tests {
         let mut test_path_in = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_in.push("src");
         test_path_in.push("test_ins");
-        test_path_in.push("Capture_pawn_in");
+        test_path_in.push(test_name.to_string() + "_in");
         test_path_in.set_extension("txt");
         let expected_input =
             fs::read_to_string(test_path_in).unwrap_or("INVALID_TEST_INPUT".to_string());
@@ -2166,6 +2172,13 @@ mod tests {
                 piece, src_file, src_rank, dst_file, dst_rank
             );
 
+            chess_board_clone = chess_board.clone();
+            for piece in &mut chess_board.pieces {
+                piece.possible_moves.clear();
+                let mut moves = get_valid_moves_for_piece(&piece.clone(), &chess_board_clone);
+                piece.possible_moves.append(&mut moves);
+            }
+
             if let Ok(_) = chess_board.try_move_piece(src_rank, src_file, dst_rank, dst_file) {
                 chess_board.advance_turn();
             }
@@ -2174,7 +2187,7 @@ mod tests {
         let mut test_path_out = std::env::current_dir().unwrap_or(std::path::PathBuf::new());
         test_path_out.push("src");
         test_path_out.push("test_ins");
-        test_path_out.push("Capture_pawn_out");
+        test_path_out.push(test_name.to_string() + "_out");
         test_path_out.set_extension("txt");
         let expected_output = fs::read_to_string(test_path_out);
 
@@ -2188,5 +2201,10 @@ mod tests {
 
 
         assert_eq!(expected, chess_board.to_string());
+    }
+
+    #[test]
+    fn invalid_queen_move() {
+        run_test_input("QueenInvalid");
     }
 }
