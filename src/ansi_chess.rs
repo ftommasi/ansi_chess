@@ -718,6 +718,14 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             file: SquareFile::from(file),
                             rank: SquareRank::from(rank),
                         });
+                        break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -746,7 +754,6 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             file: SquareFile::from(file),
                             rank: SquareRank::from(rank),
                         });
-                        //TODO: moving this break, breaks RuyLopez test, but I think thtis is a bug
                         break;
                     }else{
                         if other.id != piece.id{
@@ -785,6 +792,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -815,6 +829,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -851,6 +872,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 file = file - 1 as u8;
@@ -876,6 +904,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 rank = rank - 1 as u8;
@@ -902,6 +937,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 valid_moves.push(Square {
@@ -928,6 +970,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -963,6 +1012,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -991,6 +1047,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -1019,6 +1082,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -1047,6 +1117,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
 
@@ -1073,6 +1150,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 valid_moves.push(Square {
@@ -1098,6 +1182,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 valid_moves.push(Square {
@@ -1123,6 +1214,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 valid_moves.push(Square {
@@ -1148,6 +1246,13 @@ pub fn get_valid_moves_for_piece(piece: &Piece, board: &Board) -> Vec<Square> {
                             rank: SquareRank::from(rank),
                         });
                         break;
+                    }else{
+                        if other.id != piece.id{
+                            println!("I think I see a same color piece as me in square {}{} with id {} (I am {}{} ({})",
+                            other.position.rank.to_str(),other.position.file.to_str(),other.id,
+                            piece.position.rank.to_str(),piece.position.file.to_str(),piece.id);
+                            break;
+                        };
                     }
                 }
                 valid_moves.push(Square {
